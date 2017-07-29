@@ -866,10 +866,8 @@ function def() {
                     minimumAchieved = false;
                     troops = {spy: minScout};
 
-                    console.log(farm);
-                    console.log((Number(new Date()) - latestReport.battleTime));
-                    console.log(hoursToRescout * 60 * 60 * 1000);
-                    console.log(getMaxTroop("spy") > leaveShapeTroops.spy);
+                    console.log(getMaxTroop("spy"));
+                    console.log(leaveShapeTroops.spy);
 
                     if (farm && (!rescout || (Number(new Date()) - latestReport.battleTime) <= hoursToRescout * 60 * 60 * 1000) && getMaxTroop("spy") > leaveShapeTroops.spy) {
 
