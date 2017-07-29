@@ -740,10 +740,13 @@ function def() {
             localData.forEach(function(element, index, array) {
                 if (troopsEntered) return false;
                 var alreadyAttacking = false;
+
                 $(".quickedit-content span").each(function() {
                     if ($(this).text().indexOf(_("Attack on")) !== -1 && splitOutCoords($(this).text(), true) === element.coords) alreadyAttacking = true;
                 });
+
                 if (!alreadyAttacking && !element.disabled) {
+                    console.log("Not attacking and element not disabled");
                     var latestReport = element.reports && element.reports[0];
                     if (!latestReport) return false;
                     var targetCoords = element.coords;
@@ -861,6 +864,7 @@ function def() {
                         }
                     }
 
+                    console.log("Hit farming logic");
                     minimumAchieved = false;
                     troops = {spy: minScout};
                     if (farm && (!rescout || (Number(new Date()) - latestReport.battleTime) <= hoursToRescout * 60 * 60 * 1000) && getMaxTroop("spy") > leaveShapeTroops.spy) {
