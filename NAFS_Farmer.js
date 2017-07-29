@@ -868,6 +868,8 @@ function def() {
 
                     console.log(getMaxTroop("spy"));
                     console.log(leaveShapeTroops.spy);
+                    //Fixed bug: If not shaping, leaveShapeTroops is null.
+                    leaveShapeTroops.spy = 1;
 
                     if (farm && (!rescout || (Number(new Date()) - latestReport.battleTime) <= hoursToRescout * 60 * 60 * 1000) && getMaxTroop("spy") > leaveShapeTroops.spy) {
 
