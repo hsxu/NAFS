@@ -869,7 +869,7 @@ function def() {
                     
                     //Fixed bug: If not shaping, leaveShapeTroops is null.
                     leaveShapeTroops.spy = 1;
-
+                    console.log("5");
                     console.log(getMaxTroop("spy"));
                     console.log(leaveShapeTroops.spy);
 
