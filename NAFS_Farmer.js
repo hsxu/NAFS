@@ -869,11 +869,11 @@ function def() {
                     
                     //Fixed bug: If not shaping, leaveShapeTroops is null.
                     leaveShapeTroops.spy = 1;
-                    console.log("5");
+                    console.log("6");
                     console.log(getMaxTroop("spy"));
                     console.log(leaveShapeTroops.spy);
 
-                    if (farm && (!rescout || (Number(new Date()) - latestReport.battleTime) <= hoursToRescout * 60 * 60 * 1000) && getMaxTroop("spy") > leaveShapeTroops.spy) {
+                    if (farm && (!rescout || (Number(new Date()) - latestReport.battleTime) <= hoursToRescout * 60 * 60 * 1000) && getMaxTroop("spy") > 1) {
 
                         console.log("hit inside logic");
 
@@ -924,7 +924,7 @@ function def() {
 
                     minimumAchieved = false; /*Unnecessary, but oh well.*/
                     troops = {spy: minScout};
-                    if (rescout && (Number(new Date()) - latestReport.battleTime) > hoursToRescout * 60 * 60 * 1000 && getMaxTroop("spy") > leaveShapeTroops.spy) {
+                    if (rescout && (Number(new Date()) - latestReport.battleTime) > hoursToRescout * 60 * 60 * 1000 && getMaxTroop("spy") > 1) {
                         /*It's time to rescout. We also have at least 1 scout "available".*/
                         console.log("Rescouting! Village " + targetCoords);
                         insertTroops(troops);
