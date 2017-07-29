@@ -865,10 +865,16 @@ function def() {
 
                     minimumAchieved = false;
                     troops = {spy: minScout};
+
+                    console.log(farm);
+                    console.log((Number(new Date()) - latestReport.battleTime));
+                    console.log(hoursToRescout * 60 * 60 * 1000);
+                    console.log(getMaxTroop("spy") > leaveShapeTroops.spy);
+
                     if (farm && (!rescout || (Number(new Date()) - latestReport.battleTime) <= hoursToRescout * 60 * 60 * 1000) && getMaxTroop("spy") > leaveShapeTroops.spy) {
 
                         console.log("hit inside logic");
-                        
+
                         var hoursAgo = (Number(new Date()) - latestReport.battleTime) / 60 / 60 / 1000;
                         var origWood = latestReport.wood,
                             origClay = latestReport.clay,
