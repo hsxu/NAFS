@@ -869,13 +869,14 @@ function def() {
                     
                     //Fixed bug: If not shaping, leaveShapeTroops is null.
                     leaveShapeTroops.spy = 1;
-                    console.log("6");
+                    console.log("7");
                     console.log(getMaxTroop("spy"));
                     console.log(leaveShapeTroops.spy);
 
                     if (farm && (!rescout || (Number(new Date()) - latestReport.battleTime) <= hoursToRescout * 60 * 60 * 1000) && getMaxTroop("spy") > 1) {
 
                         console.log("hit inside logic");
+                        console.log(latestReport);
 
                         var hoursAgo = (Number(new Date()) - latestReport.battleTime) / 60 / 60 / 1000;
                         var origWood = latestReport.wood,
