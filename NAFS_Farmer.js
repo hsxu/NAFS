@@ -913,6 +913,8 @@ function def() {
                             if (sendingTroops) break;
                         }
 
+                        console.log(sendingTroops);
+
                         if (sendingTroops) {
                             console.log("Farming! Village " + targetCoords);
                             insertTroops(troops);
