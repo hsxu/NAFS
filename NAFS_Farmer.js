@@ -400,48 +400,54 @@ function def() {
     if (getQuery("screen") === "report") {
         if (getQuery("view") === "" && getQuery("mode") === "attack") {
             /*Report: Attack menu*/
+            var timeOut = 100;
             $("#report_list tr:has(td) .quickedit-content").each(function(index, element) {
-                var reportURL = $("a", this);
-                if (reportURL.length < 1) {
-                    /*This report has no URL. Woo?*/
-                    this.innerHTML += " - no report URL";
-                } else {
-                    reportURL = reportURL.attr("href");
-                    var reportElement = this;
 
-                    var ajx = jQuery.ajax(reportURL,
-                        {type: "GET",
-                        dataType: "html",
-                        async: true,
-                        error: function(jqXHR, textStatus, errorThrown) {
-                            reportElement.innerHTML += " - report failed to load (see console for more info)";
-                            console.log("Report failed to load via AJAX. Status: " + textStatus + "; error: " + errorThrown);
-                        },
-                        success: function(responseData, textStatus, jqXHR) {
-                            var fakeDOM = $("<div>");
-                            fakeDOM.get(0).class = "NAFSReportDOM";
+                setTimeout(function() {
+                    var reportURL = $("a", this);
+                    if (reportURL.length < 1) {
+                        /*This report has no URL. Woo?*/
+                        this.innerHTML += " - no report URL";
+                    } else {
+                        reportURL = reportURL.attr("href");
+                        var reportElement = this;
 
-                            fakeDOM.html(responseData);
+                        var ajx = jQuery.ajax(reportURL,
+                            {type: "GET",
+                            dataType: "html",
+                            async: true,
+                            error: function(jqXHR, textStatus, errorThrown) {
+                                reportElement.innerHTML += " - report failed to load (see console for more info)";
+                                console.log("Report failed to load via AJAX. Status: " + textStatus + "; error: " + errorThrown);
+                            },
+                            success: function(responseData, textStatus, jqXHR) {
+                                var fakeDOM = $("<div>");
+                                fakeDOM.get(0).class = "NAFSReportDOM";
 
-                            var progressReport = processReport(fakeDOM, getQueryFromHaystack(reportURL, "view"));
+                                fakeDOM.html(responseData);
 
-                            if (progressReport === true) {
-                                reportElement.innerHTML += " - " + _("Saved");
+                                var progressReport = processReport(fakeDOM, getQueryFromHaystack(reportURL, "view"));
 
-                                var reportCheckbox = $("input[type='checkbox']", $(reportElement).parents("#report_list tr"));
-                                if (reportCheckbox.length === 1) {
-                                    reportCheckbox.prop("checked", true);
+                                if (progressReport === true) {
+                                    reportElement.innerHTML += " - " + _("Saved");
+
+                                    var reportCheckbox = $("input[type='checkbox']", $(reportElement).parents("#report_list tr"));
+                                    if (reportCheckbox.length === 1) {
+                                        reportCheckbox.prop("checked", true);
+                                    } else {
+                                        console.log("Couldn't check box of element " + index);
+                                    }
                                 } else {
-                                    console.log("Couldn't check box of element " + index);
+                                    reportElement.innerHTML += " - " + progressReport;
                                 }
-                            } else {
-                                reportElement.innerHTML += " - " + progressReport;
+                                /*Cleanup*/
+                                fakeDOM.html("");
                             }
-                            /*Cleanup*/
-                            fakeDOM.html("");
-                        }
-                    });
-                }
+                        });
+                    }
+                }, timeOut);
+                timeOut += 100;
+
             });
         } else if (getQuery("view") !== "") {
             /*We're on an individual report!*/
