@@ -10,13 +10,7 @@ Changelog:
 
 /*The standard data.*/
 var serverTimezones = {"en" : " GMT+0000", "zz" : " GMT+0100", "no" : " GMT+0100"};
-var resourceRates = [0, 30, 35, 41, 47, 55, 64, 74, 86, 100, 117, 136, 158, 184, 214, 249, 289, 337, 391, 455, 530, 616, 717, 833, 969, 1127, 1311, 1525, 1774, 2063, 2400];
-var warehouseCapacity = [0, 1000, 1229, 1512, 1859, 2285, 2810, 3454, 4247, 5222, 6420, 7893, 9705, 11932, 14670, 18037, 22177, 27266, 33523, 41217, 50675, 62305, 76604, 94184, 115798, 142373, 175047, 215219, 264611, 325337, 400000];
-var unitCarry = {"spear": 25, "sword": 15, "axe": 10, "archer": 10, "spy": 0, "light": 80, "marcher": 50, "heavy": 50, "ram": 0, "catapult": 0, "knight": 100};
 var unitSpeed = {"spear": 18, "sword": 22, "axe": 18, "archer": 18, "spy": 9, "light": 10, "marcher": 10, "heavy": 11, "ram": 30, "catapult": 30};
-
-var speedGroups = [["spy", "light", "marcher", "heavy"], ["spear", "sword", "axe", "archer"], ["ram", "catapult"]];
-var slowestSpeedofGroups = [11, 22, 30];
 
 var troopList = ["spear", "sword", "axe", "archer", "spy", "light", "marcher", "heavy", "ram", "catapult", "knight"]; /*Ignore snob*/
 var commonTroopNames = [["spearman", "spear"], ["swordman", "sword"], ["axeman", "axe"], ["scout", "spy"], ["lc", "light"], ["light cavalry", "light"], ["ma", "marcher"], ["mounted archer", "marcher"], ["heavy cavalry", "heavy"], ["hc", "heavy"], ["cat", "catapult"], ["paladin", "knight"]];
@@ -60,6 +54,7 @@ var catsRequiredToBreak = [
     /*30*/ [0,0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,   0,   0]
 ];
 var catsMin = [0,2,2,2,3,3,3,3,3,4,4,4,5,5,6,6,6,7,8,8,9,10,10,11,12,13,15,16,17,19,20]; /*to break a building at level [i] by 1*/
+
 var months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]; /*To get UTC-ize dates!*/
 var _a = { /*translations. Duh*/
     "en" : {
@@ -121,7 +116,6 @@ var worldLetters = window.location.host.split(/\W+/)[0].substring(0, 2);
 /*Temporary local copy.*/
 var settings;
 
-/*Fetch local storage*/
 function getLocalStorage() {
     if (!localStorage){ alert("Local storage doesn't seem to be enabled. NAFS won't function without it!"); throw "Whoops. Local storage isn't enabled, apparently."; }
     if (!localStorage.NAFSData) localStorage.NAFSData = '{"villages":{}, "settings":{}}';
@@ -129,7 +123,6 @@ function getLocalStorage() {
     return settings;
 }
 
-/*Save local storage*/
 function setLocalStorage(data){
     if (typeof data === "undefined") data = settings;
     localStorage.NAFSData = JSON.stringify(data);
@@ -146,20 +139,6 @@ function _(translateID){
     return (typeof _a[getCurrentLang()] !== "undefined" && _a[getCurrentLang()][translateID]) || translateID;
     /*If there are translations for the current language, and there exists a translation for this thing, use that. Else, return the translation's ID.*/
 }
-
-/*HQ (1), Barracks (0), Stable (0), Workshop (0), Church (0), Academy (0), Smithy (0), Rally Point (0), Statue (0), Market (0), Timber Camp (leave), Clay Pit (leave), Iron Mine (leave), Farm (1), Warehouse (leave), Hiding Place (impossible), Wall (0)*/
-var catables = [
-    {"name" : _("Farm"), "lowest" : (getSetting("catFarmToZero", false) ? 1 : 12), "id" : "farm"},
-    {"name" : _("Headquarters"), "lowest" : 1, "id" : "main"},
-    {"name" : _("Barracks"), "lowest" : 0, "id" : "barracks"},
-    {"name" : _("Stable"), "lowest" : 0, "id" : "stable"},
-    {"name" : _("Workshop"), "lowest" : 0, "id" : "garage"},
-    {"name" : _("Academy"), "lowest" : 0, "id" : "snob"},
-    {"name" : _("Smithy"), "lowest" : 0, "id" : "smith"},
-    {"name" : _("Rally point"), "lowest" : 0, "id" : "place"},
-    {"name" : _("Statue"), "lowest" : 0, "id" : "statue"},
-    {"name" : _("Market"), "lowest" : 0, "id" : "market"}
-];
 
 var buildingList = ["barracks", "rally", "stable", "garage", "snob", "smith", "statue", "market", "main", "farm", "wall"];
 
@@ -237,139 +216,12 @@ function setSetting(name, val){
     return true;
 }
 
-function objectifySetting(settingValues, settingKeys) {
-    var nafsData = getLocalStorage();
-    if (!nafsData.settings) nafsData.settings = {};
-    var settingName;
-
-    if (typeof settingValues === "string") {
-        settingName = settingValues;
-        settingValues = nafsData.settings[settingValues];
-    }
-    if (typeof settingValues === "undefined") return false;
-
-    if (typeof settingKeys === "undefined") settingKeys = nafsData.settings[settingName + "Key"];
-    else if (typeof settingKeys === "string") {
-        var settingKeyName = settingKeys;
-        settingKeys = nafsData.settings[settingKeys];
-    }
-
-    if (typeof settingKeys === "undefined") return false;
-
-    if (typeof settingKeys === "string") settingKeys = settingKeys.split(",");
-    if (typeof settingValues === "string") settingValues = settingValues.split(",");
-
-    var settingsObject = {};
-    for (var settingKeyIndex in settingKeys) {
-        settingsObject[settingKeys[settingKeyIndex]] = settingValues[settingKeyIndex];
-    }
-
-    return settingsObject;
-}
-
-function objectifyTroopSettings(settingValues, settingKeys) {
-    var objectedSettings = objectifySetting(settingValues, settingKeys);
-    for (var settingKey in objectedSettings){
-        objectedSettings[settingKey] = parseInt(objectedSettings[settingKey]);
-        if (fixTroopName(settingKey) && fixTroopName(settingKey) !== settingKey) {
-            objectedSettings[fixTroopName(settingKey)] = parseInt(objectedSettings[settingKey]);
-            delete objectedSettings[settingKey];
-        }
-    }
-    return objectedSettings;
-}
-
-function changeConfig() {
-    /*
-    Config Data:
-    {rescout {minScout, hoursToRescout, hoursToStale}, farm {minFarmTroops (,), maxFarmTroops (,), leaveFarmTroops (,)}, shape {catapult {catFarmToZero}, [catapultWalls, ram] {minWallLevel}, minShapeTroops (,), maxShapeTroops (,), leaveShapeTroops (,)}, playerImport}
-    */
-    function clearDisabledFarms(coords) {
-        var nafsData = getLocalStorage();
-
-        if (typeof coords === "undefined") {
-            for (var villageIndex in nafsData.villages) {
-                if (villageIndex.indexOf("|") !== -1) {
-                    clearDisabledFarms(villageIndex);
-                }
-            }
-        } else {
-            if (coords.indexOf("|") !== -1 && typeof nafsData.villages[coords] !== "undefined") {
-                var village = nafsData.villages[coords];
-                for (var i=0; i < village.length; i++){
-                    if (village[i].disabled) {
-                        village.splice(i, 1);
-                        i--;
-                    }
-                }
-                nafsData.villages[coords] = village;
-            }
-        }
-
-        setLocalStorage(nafsData);
-    }
-
-    alert("We will now change the settings of this farming script! Please do not CANCEL, nor type in random stuff, as you will have to redo this!");
-
-    setSetting("rescout", prompt("Should we re-scout farms with old/stale reports? (If you disable this, automatic values will likely be wrong!) (true/false)", getSetting("rescout", true)) == "true");
-
-    if (getSetting("rescout", true) === true) setSetting("minScout", parseInt(prompt("How many scouts to send at a minimum per attack?", getSetting("minScout", 1))));
-
-    if (getSetting("rescout", true) === true) setSetting("hoursToRescout", parseInt(prompt("How many hours until a report 'expires' and may no longer be used for data? You will want to adjust this based on the world speed.", getSetting("hoursToRescout", 36))));
-
-    if (getSetting("rescout", true) === true) setSetting("hoursToStale", parseInt(prompt("How many hours until a report becomes 'stale' and /may/ be rescouted? You will want to adjust this based on the world speed.", getSetting("hoursToStale", 10))));
-
-    setSetting("farm", prompt("Should we farm villages? (true/false)", getSetting("farm", true)) == "true");
-
-    if (getSetting("farm", true) === true) {
-        setSetting("minFarmTroops", prompt("If the troop is used, how many of each troop should be sent at a minimum per farming attack? (spear, sword, axe, archer, lc, ma, hc, paladin - separate by commas, no spaces)", getSetting("minFarmTroops", "0,0,0,0,5,0,0,0")));
-        setSetting("minFarmTroopsKey", "spear,sword,axe,archer,lc,ma,hc,paladin");
-
-        setSetting("maxFarmTroops", prompt("If the troop is used, how many of each troop should be sent at a maximum per farming attack? (spear, sword, axe, archer, lc, ma, hc, paladin - separate by commas, no spaces; -1 means no limit, 0 disables the troop)", getSetting("maxFarmTroops", "0,0,0,0,-1,0,0,0")));
-        setSetting("maxFarmTroopsKey", "spear,sword,axe,archer,lc,ma,hc,paladin");
-
-        setSetting("leaveFarmTroops", prompt("How many troops to leave, at a minimum, within the village? (spear, sword, axe, archer, scout, lc, ma, hc, paladin - separate by commas, no spaces)", getSetting("leaveFarmTroops", "0,0,0,0,0,0,0,0,0")));
-        setSetting("leaveFarmTroopsKey", "spear,sword,axe,archer,scout,lc,ma,hc,paladin");
-    }
-
-    setSetting("shape", prompt("Should we knock down walls and/or shape villages?", getSetting("shape", true)) == "true");
-
-    if (getSetting("shape", true) === true) {
-        setSetting("catapult", prompt("Should we use catapults to shape villages? (true/false)", getSetting("catapult", true)) == "true");
-
-        if (getSetting("catapult", true) === true)
-            setSetting("catFarmToZero", prompt("Should we catapult farms to zero? (Otherwise about level 12 - true/false)", getSetting("catFarmToZero", false)) == "true");
-
-        setSetting("catapultWalls", prompt("Should we use catapults to knock down walls (after rams)? (true/false)", getSetting("catapultWalls", true)) == "true");
-
-        setSetting("ram", prompt("Should we use rams to knock down farm walls? (true/false)", getSetting("ram", true)) == "true");
-
-        if (getSetting("catapultWalls", true) || getSetting("ram", true)) setSetting("minWallLevel", parseInt(prompt("What should the minimum wall level required to send rams (or catapults, if applicable) be?", getSetting("minWallLevel", 1))));
-    }
-
-    if (getSetting("shape", true) === true && (getSetting("catapult", true) === true || getSetting("ram", true) === true)){
-        setSetting("minShapeTroops", prompt("If the troop is used, how many of each should be sent at a minimum per shaping attack? (spear, sword, axe, archer, lc, ma, hc, ram, catapult, paladin - separate by commas, no spaces)", getSetting("minShapeTroops", "50,50,50,50,0,0,0,2,2,0")));
-        setSetting("minShapeTroopsKey", "spear,sword,axe,archer,lc,ma,hc,ram,catapult,paladin");
-
-        setSetting("maxShapeTroops", prompt("If the troop is used, how many of each should be sent at a maximum per shaping attack? (spear, sword, axe, archer, lc, ma, hc, ram, catapult, paladin - separate by commas, no spaces; -1 means no limit, 0 disables the troop)", getSetting("maxShapeTroops", "100,100,100,100,0,0,0,-1,-1,0")));
-        setSetting("maxShapeTroopsKey", "spear,sword,axe,archer,lc,ma,hc,ram,catapult,paladin");
-
-        setSetting("leaveShapeTroops", prompt("How many troops to leave, at a minimum, within the village after shaping attacks? (spear, sword, axe, archer, scout, lc, ma, hc, ram, catapult, paladin - separate by commas, no spaces)", getSetting("leaveShapeTroops", "50,50,50,50,5,0,0,0,0,0,0")));
-        setSetting("leaveShapeTroopsKey", "spear,sword,axe,archer,scout,lc,ma,ha,ram,catapult,paladin");
-    }
-
-    setSetting("playerImport", prompt("Should we import reports with players as the defenders? (true/false)", getSetting("playerImport", true)) == "true");
-
-    if (prompt("Clear disabled villages from the farm list? (true/false)", "false") == "true") clearDisabledFarms();
-}
-
 function addReport(reportID, localCoords, vilCoords, wood, clay, iron, battleTime, buildings){
     if (typeof vilCoords === "object") vilCoords = vilCoords[0] + "|" + vilCoords[1];
     if (typeof localCoords === "object") localCoords = localCoords[0] + "|" + localCoords[1];
     var nafsData = getLocalStorage();
     if (!nafsData.villages) nafsData.villages = {};
     if (!nafsData.villages[localCoords]) nafsData.villages[localCoords] = [];
-
 
     var vilIndex;
     nafsData.villages[localCoords].forEach(function(element, index) {
@@ -617,19 +469,6 @@ function def() {
         var nafsLocalData = localData;
         var targetVillage = nafsLocalData[vilIndex];
         var latestReport = targetVillage && targetVillage.reports && targetVillage.reports[0];
-        if (latestReport) {
-            var catTarget;
-            catables.forEach(function(element, index) {
-                if (catTarget) return;
-                if (latestReport.buildings && latestReport.buildings[element.id] && latestReport.buildings[element.id] > element.lowest) {
-                    catTarget = element.id;
-                }
-            });
-            if (catTarget) {
-                $("select[name='building']").val(catTarget);
-                $("select[name='building']").after($("#nafsMsg") || $("<span id='nafsMsg' style='color:#0A0;'>" + _("Changed") + "</span>"));
-            }
-        }
         $("#troop_confirm_go").focus();
     } else if (getQuery("screen") === "place" && ($("#units_form").length > 0 || $("#command-data-form").length > 0)) {
         /*Rally page.*/
@@ -664,177 +503,54 @@ function def() {
         } else {
             var troopsEntered = false;
 
-            var rescout = getSetting("rescout", true);
-            var minScout = getSetting("minScout", 1);
-            var hoursToRescout = getSetting("hoursToRescout", 36);
-            var hoursToStale = getSetting("hoursToStale", 12); /*?*/
-
-            var farm = getSetting("farm", true);
-            var minFarmTroops = objectifyTroopSettings("minFarmTroops");
-            var maxFarmTroops = objectifyTroopSettings("maxFarmTroops");
-            var leaveFarmTroops = objectifyTroopSettings("leaveFarmTroops");
-
-            var shape = getSetting("shape", true);
-            var catapult = getSetting("catapult", true);
-            var catFarmToZero = getSetting("catFarmToZero", false);
-            var catapultWalls = getSetting("catapultWalls", true);
-            var ramWalls = getSetting("ram", true);
-            var minWallLevel = getSetting("minWallLevel", 1);
-            var minShapeTroops = objectifyTroopSettings("minShapeTroops");
-            var maxShapeTroops = objectifyTroopSettings("maxShapeTroops");
-            var leaveShapeTroops = objectifyTroopSettings("leaveShapeTroops");
-
-
             // How far away is each village?
             // What's the time limit by ram?
 
             // What's the criteria to cat down a village? HQ > 5?
             // How many axes to send?
+            // What to do when the list repeats?
+            // What to do with localstorage after a report has been sent?
 
+            if (!nafsData.villaIndex) {
+                nafsData.villaIndex = 0;
+            }
 
-            localData.forEach(function(element, index, array) {
-                if (troopsEntered) return false;
-                var alreadyAttacking = false;
+            if (nafsData.villaIndex > localData.length - 1) {
+                nafsData.villaIndex = 0;
+                console.log("List repeated!");
+            }
 
-                $(".quickedit-content span").each(function() {
-                    if ($(this).text().indexOf(_("Attack on")) !== -1 && splitOutCoords($(this).text(), true) === element.coords) alreadyAttacking = true;
-                });
+            for (int i = 0; i < localData.length; i++) { 
+                element = localData[i];
 
-                console.log("alreadyAttacking: " + alreadyAttacking);
-                if (!alreadyAttacking && !element.disabled) {
-                    var latestReport = element.reports && element.reports[0];
-                    if (!latestReport) return false;
-                    var targetCoords = element.coords;
-/*{rescout {minScout, hoursToRescout, hoursToStale}, farm {minFarmTroops (sp,sw,ax,ar,lc,ma,hc), maxFarmTroops (sp,sw,ax,ar,lc,ma,hc), leaveFarmTroops (sp,sw,ax,ar,sc,lc,ma,hc,pa)}, shape {catapult {catFarmToZero}, [catapultWalls, ram] {minWallLevel}, minShapeTroops (sp,sw,ax,ar,lc,ma,hc,pa), maxShapeTroops (sp,sw,ax,ar,lc,ma,hc,pa), leaveShapeTroops (sp,sw,ax,ar,sc,lc,ma,hc,pa)}, playerImport}*/
-
-                    var minimumAchieved = false;
-                    var troops = {spy: minScout};
-                    /*Shaping is allowed, we have building data, and either we're not rescouting or it's under the hours to rescout value.*/
-                    if (shape && latestReport.buildings && (!rescout || (Number(new Date()) - latestReport.battleTime) <= hoursToRescout * 60 * 60 * 1000) && getMaxTroop("spy") > leaveShapeTroops.spy) {
-                        var wallLevel = latestReport.buildings.wall;
-                        console.log("Shape entered");
-
-                        if ((ramWalls || catapultWalls) && wallLevel && wallLevel >= minWallLevel) {
-                            console.log("ramWalls entered and wallLevel >= minWall");
-
-                            /*We're ramming or catting walls. We have a wall that's greater than or equal to the minimum level.*/
-                            for (var speedGroupID = speedGroups.length-1; speedGroupID>=0; speedGroupID--) {
-                                /*Group 0 is the fasters, therefore this goes slowest first.*/
-                                for (var unitID in speedGroups[speedGroupID]){
-                                    if (minimumAchieved) break;
-
-                                    var unit = speedGroups[speedGroupID][unitID];
-                                    if (unitCarry[fixTroopName(unit)] === 0) continue;
-                                    var troopCount = Math.min(getMaxTroop(unit) - leaveShapeTroops[unit], maxShapeTroops[unit] === -1 ? getMaxTroop(unit) : maxShapeTroops[unit]);
-                                    if (troopCount >= minShapeTroops[unit] && troopCount > 0) {
-                                        minimumAchieved = true;
-                                        troops[unit] = troopCount;
-                                    }
-                                }
-                            }
-
-                            if (minimumAchieved) {
-                                if (ramWalls && getMaxTroop("ram") - leaveShapeTroops.ram >= minShapeTroops.ram && getMaxTroop("ram") - leaveShapeTroops.ram >= ramsMin[wallLevel]) {
-                                    /*Ram walls, and we have enough to fulfill the min criteria (user-set and to take a wall)*/
-                                    var ramCount = Math.min(ramsRequired[wallLevel], getMaxTroop("ram") - leaveShapeTroops.ram, maxShapeTroops.ram === -1 ? getMaxTroop("ram") : maxShapeTroops.ram);
-                                    if (ramCount >= ramsMin[wallLevel] && ramCount >= minShapeTroops.ram && ramCount > 0) {
-                                        /*Enough for minimum. Enough for leaving. Under the max. Ready to ram with these rams.*/
-                                        if (ramCount < ramsRequired[wallLevel]) {
-                                            /*We should really use catapults to supplement this... Oh well.*/
-                                        }
-
-                                        troops.ram = ramCount;
-
-                                        console.log("Ram wall shaping! Village " + targetCoords);
-                                        insertTroops(troops);
-                                        targetVil(targetCoords);
-
-                                        troopsEntered = true;
-                                        return false;
-                                    }
-                                }
-                                if (catapultWalls && getMaxTroop("catapult") - leaveShapeTroops.catapult >= minShapeTroops.catapult && getMaxTroop("catapult") - leaveShapeTroops.catapult >= catsMin[wallLevel]) {
-                                    var catCount = Math.min(catsRequiredToBreak[0][wallLevel], getMaxTroop("catapult") - leaveShapeTroops.catapult, maxShapeTroops.catapult === -1 ? getMaxTroop("catapult") : maxShapeTroops.catapult);
-                                    if (catCount >= catsMin[wallLevel] && catsCount >= minShapeTroops.catapult && catCount > 0) {
-                                        /*Enough for minimum. Enough for leaving. Under the max. Ready to ram with these rams.*/
-                                        /*For now we'll just deal with cats and rams separately, m'kay? Rams take priority.*/
-
-                                        troops.catapult = catCount;
-
-                                        console.log("Catapult wall shaping! Village " + targetCoords);
-                                        insertTroops(troops);
-                                        targetVil(targetCoords);
-
-                                        troopsEntered = true;
-                                        return false;
-                                    }
-                                }
-                            }
-                        }
-
-                        minimumAchieved = false;
-                        troops = {spy: minScout};
-                        if (catapult) {
-                            for (var speedGroupID = speedGroups.length-1; speedGroupID>=0; speedGroupID--) {
-                                /*Group 0 is the fasters, therefore this goes slowest first.*/
-                                for (var unitID in speedGroups[speedGroupID]){
-                                    if (minimumAchieved) break;
-
-                                    var unit = speedGroups[speedGroupID][unitID];
-                                    var troopCount = Math.min(getMaxTroop(unit) - leaveShapeTroops[unit], maxShapeTroops[unit] === -1 ? getMaxTroop(unit) : maxShapeTroops[unit]);
-                                    if (troopCount >= minShapeTroops[unit] && troopCount > 0) {
-                                        minimumAchieved = true;
-                                        troops[unit] = troopCount;
-                                    }
-                                }
-                            }
-
-                            if (minimumAchieved) {
-                                var catTarget;
-                                var catTargetLevel;
-                                var catTargetMin;
-                                catables.forEach(function(element, index) {
-                                    if (catTarget) return false;
-                                    if (latestReport.buildings[element.id] && latestReport.buildings[element.id] > element.lowest) {
-                                        catTarget = element.id;
-                                        catTargetLevel = latestReport.buildings[element.id];
-                                        catTargetMin = element.lowest;
-                                    }
-                                });
-
-                                /*catapultWalls && getMaxTroop("catapult") - leaveShapeTroops.catapult >= minShapeTroops.catapult && getMaxTroop("catapult") - leaveShapeTroops.catapult >= catsMin[wallLevel]) {
-                                    var catCount = Math.min(catsRequiredToBreak[0][wallLevel], getMaxTroop("catapult") - leaveShapeTroops.catapult, maxShapeTroops.catapult === -1 ? getMaxTroop("catapult") : maxShapeTroops.catapult);
-                                    if (catCount >= catsMin[wallLevel] && catsCount >= minShapeTroops.catapult) {*/
-                                if (getMaxTroop("catapult") - leaveShapeTroops.catapult >= minShapeTroops.catapult && getMaxTroop("catapult") - leaveShapeTroops.catapult >= catsMin[catTargetLevel]) {
-                                    var catCount = Math.min(catsRequiredToBreak[catTargetMin][catTargetLevel], getMaxTroop("catapult") - leaveShapeTroops.catapult, maxShapeTroops.catapult === -1 ? getMaxTroops("catapult") : maxShapeTroops.catapult);
-                                    if (catCount >= catsMin[catTargetLevel] && catsCount >= minShapeTroops.catapult && catCount > 0) {
-                                        troops.catapult = catCount;
-
-                                        console.log("Catapult shaping! Village " + targetCoords);
-                                        insertTroops(troops);
-                                        targetVil(targetCoords);
-
-                                        troopsEntered = true;
-                                        return false;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    minimumAchieved = false;
-                    troops = {spy: minScout};
-
-                    
-                    //Fixed bug: If not shaping, leaveShapeTroops is null.
-                    leaveShapeTroops.spy = 1;
-
-                    minimumAchieved = false; /*Unnecessary, but oh well.*/
+                var latestReport = element.reports && element.reports[0];
+                if (!latestReport) { 
+                    console.log("Latest report not found.");
+                    return;
                 }
-                if (index === array.length - 1) {
-                    errorBox(_("No villages left to attack! Either add more villages, or wait for the attacks to complete."));
+
+                var targetCoords = element.coords;
+                var troops = {spy: 0};
+
+                var wallLevel = latestReport.buildings.wall;
+                if (wallLevel == 0) {
+                    console.log("Wall is level 0.");
+                    return;
                 }
-            });
+                                
+                var ramCount = Math.min(ramsMin[wallLevel]);
+                troops.ram = ramCount;
+                console.log("Ram wall shaping! Village " + targetCoords);
+
+                var HQLevel = latestReport.buildings.main;
+                var catCount = Math.min(catsMin[HQLevel]);
+                troops.catapult = catCount;
+                console.log("Catapult shaping Hq! Village " + targetCoords);
+
+                insertTroops(troops);
+                targetVil(targetCoords);
+                nafsData.villaIndex++;
+            }
         }
     } else if (getQuery("screen") === "info_village") {
         localData.sort(function(a, b) {
@@ -857,12 +573,6 @@ function processReport(doc, reportID){
         /* NEW REPORT STYUHL */
         var repTable = espionage.closest("tbody");
         var defender = $("#attack_info_def th:not(:contains('" + _("Defender") + "'))", repTable);
-        if (!getSetting("playerImport", true) && defender.length >= 1 && !defender.text().match("---")){
-            var linkd = $("<span>" + _("Saved") + "</span>");
-            repTable.parent().before(linkd);
-            linkd.text("Defender seems to be a player, and config says not to import - not saved");
-            return "The defender appears to be a player.";
-        }
 
         var attackerVillage = $("#attack_info_att th:not(:contains('" + _("Attacker") + "'))", repTable).closest("tbody").find("tr:contains('Origin') td:not(:contains('Origin'))");
         var testLocalCoordsReport = ["574", "510"];
