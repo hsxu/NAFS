@@ -383,9 +383,6 @@ function addReport(reportID, localCoords, vilCoords, wood, clay, iron, battleTim
             distance: (Math.floor(Math.sqrt(Math.pow(parseInt(vilCoords.split("|")[0])-localCoords.split("|")[0],2)+Math.pow(parseInt(vilCoords.split("|")[1])-localCoords.split("|")[1],2))*100)/100),
             reports: [ ]
         });
-        nafsData.villages[localCoords].sort(function(a, b){
-            return a.distance - b.distance;
-        });
         nafsData.villages[localCoords].forEach(function(element, index) {
             if (element.coords === vilCoords) vilIndex = index;
         });
@@ -548,10 +545,10 @@ function def() {
 
 
     /*Assume we're not gonna try AJAX-ing a report list page. It probably wouldn't be sensible, if the user wants any feedback.*/
-    if (getQuery("screen") === "report"){
+    if (getQuery("screen") === "report") {
         if (getQuery("view") === "" && getQuery("mode") === "attack") {
             /*Report: Attack menu*/
-            $("#report_list tr:has(td) .quickedit-content").each(function(index, element){
+            $("#report_list tr:has(td) .quickedit-content").each(function(index, element) {
                 var reportURL = $("a", this);
                 if (reportURL.length < 1) {
                     /*This report has no URL. Woo?*/
@@ -561,7 +558,7 @@ function def() {
                     var reportElement = this;
 
                     var ajx = jQuery.ajax(reportURL,
-                        {type: "GET",
+                        type: "GET",
                         dataType: "html",
                         async: true,
                         error: function(jqXHR, textStatus, errorThrown) {
@@ -571,6 +568,7 @@ function def() {
                         success: function(responseData, textStatus, jqXHR) {
                             var fakeDOM = $("<div>");
                             fakeDOM.get(0).class = "NAFSReportDOM";
+
                             fakeDOM.html(responseData);
 
                             var progressReport = processReport(fakeDOM, getQueryFromHaystack(reportURL, "view"));
@@ -599,7 +597,7 @@ function def() {
         } else if (getQuery("view") === "" && (getQuery("mode") === "all" || getQuery("mode") === "")) {
             errorBox(_("Please run this from the 'attacks' menu!"));
         }
-    } else if (getQuery("screen") === "place" && $("#units_form").length === 0 && $("#command-data-form").length === 0) {
+    else if (getQuery("screen") === "place" && $("#units_form").length === 0 && $("#command-data-form").length === 0) {
         /*Rally confirm page.*/
         if (!localData) {
             errorBox(_("Are you sure you've imported some reports?"));
@@ -832,78 +830,19 @@ function def() {
                     leaveShapeTroops.spy = 1;
 
                     minimumAchieved = false; /*Unnecessary, but oh well.*/
-                    troops = {spy: minScout};
-                    if (rescout && (Number(new Date()) - latestReport.battleTime) > hoursToRescout * 60 * 60 * 1000 && getMaxTroop("spy") > 1) {
-                        /*It's time to rescout. We also have at least 1 scout "available".*/
-                        console.log("Rescouting! Village " + targetCoords);
-                        insertTroops(troops);
-                        targetVil(targetCoords);
-
-                        troopsEntered = true;
-                        return false;
-                    }
                 }
                 if (index === array.length - 1) {
                     errorBox(_("No villages left to attack! Either add more villages, or wait for the attacks to complete."));
                 }
             });
         }
-    } else if (getQuery("screen") === "info_village"){
-        /*Probably incomplete! FIX IT TOMORROW! TODO: Fix this better tomorrow!!!!*/
-        var vilTable = $("#content_value table table[width='100%']");
-        var vilCoords = $("tr:contains('" + _("Coordinates") + "')", vilTable).text().split(":")[1].split("|");
-        var localCoords = getLocalCoords();
-        var tribe = $("tr:contains('" + _("Tribe") + "')", vilTable);
-
-        var vilIndex;
-        localData.forEach(function(element, index) {
-            if (element.coords === (vilCoords[0] + "|" + vilCoords[1])) vilIndex = index;
+    } else if (getQuery("screen") === "info_village") {
+        localData.sort(function(a, b) {
+            return a.distance - b.distance;
         });
-        var clickText = "";
-        var type = -2;
-        if (typeof vilIndex === "undefined"){
-            clickText = _("Add to farm list for ") + getLocalName();
-            type = -1;
-        } else if (localData[vilIndex].disabled){
-            clickText = _("Enable farm for ") + getLocalName();
-            type = 1;
-        } else {
-            clickText = _("Disable farm for ") + getLocalName();
-            type = 0;
-        }
-        var thingy = $("<tr><td colspan='2'></td></tr>");
-        var thingy2 = $("<tr><td colspan='2'></td></tr>").css("display", "none");
-        $("td", thingy).append($("<a style='cursor:pointer;'>» " + clickText + "</a>").on("click", function() {
-            var nafsData = getLocalStorage();
-            if (type === -1){
-                vilIndex = localData.push({
-                    coords: (vilCoords[0] + "|" + vilCoords[1]),
-                    disabled: false,
-                    distance: (Math.floor(Math.sqrt(Math.pow(vilCoords[0]-localCoords[0],2)+Math.pow(vilCoords[1]-localCoords[1],2))*100)/100),
-                    reports: [ ]
-                });
-                localData.sort(function(a, b){
-                    return a.distance - b.distance;
-                });
-                $("td", thingy2).text(_("Added"));
-            } else {
-                var vilIndex;
-                localData.forEach(function(element, index) {
-                    if (element.coords === (vilCoords[0] + "|" + vilCoords[1])) vilIndex = index;
-                });
-                if (type === 0){
-                    localData[vilIndex].disabled = true;
-                    $("td", thingy2).text(_("Disabled"));
-                } else {
-                    localData[vilIndex].disabled = false;
-                    $("td", thingy2).text(_("Enabled"));
-                }
-            }
-            setLocalStorage(nafsData);
-            thingy.css("display", "none");
-            thingy2.css("display", "");
-        }));
-        ($("tr:contains('" + _("Actions") + "')", vilTable).length > 0 ? $("tr:contains('" + _("Actions") + "')", vilTable) : tribe).after(thingy).after(thingy2);
+        console.log("villages sorted")
+
+        return;
     }
     setLocalStorage(nafsData);
 }
@@ -926,7 +865,10 @@ function processReport(doc, reportID){
         }
 
         var attackerVillage = $("#attack_info_att th:not(:contains('" + _("Attacker") + "'))", repTable).closest("tbody").find("tr:contains('Origin') td:not(:contains('Origin'))");
-        var localCoords = splitOutCoords(attackerVillage.text(), true).split("|");
+        var testLocalCoordsReport = ["574", "510"];
+        var localCoords = testLocalCoordsReport;
+
+        //var localCoords = splitOutCoords(attackerVillage.text(), true).split("|");
 
         var defenderVillage = $("#attack_info_def th:not(:contains('" + _("Defender") + "'))", repTable).closest("tbody").find("tr:contains('Destination') td:not(:contains('Destination'))");
         var vilCoords = splitOutCoords(defenderVillage.text(), true).split("|");
@@ -1040,124 +982,5 @@ function processReport(doc, reportID){
             console.log("Error with a report! - " + localCoords[0] + "|" + localCoords[1] + " - " + vilCoords[0] + "|" + vilCoords[1] + " - " + parseInt(reportID));
             return progress;
         }
-    } else if ($("#attack_spy", doc).length >= 1) {
-        /*OLD STYLE *BLERGH* */
-        console.log("old style");
-        var espionage = $("#attack_spy", doc);
-        var repTable = espionage.parent().parent().parent();
-        var defender = $("#attack_info_def th:not(:contains('" + _("Defender") + "'))", repTable);
-        if (!getSetting("playerimport", true) && defender.length >= 1 && !defender.text().match("---")){
-            var linkd = $("<span>" + _("Saved") + "</span>");
-            repTable.parent().before(linkd);
-            linkd.text("Defender seems to be a player, and config says not to import - not saved");
-            return "The defender appears to be a player.";
-        }
-
-        var attackerVillage = $("#attack_info_att th:not(:contains('" + _("Attacker") + "'))", repTable).closest("tbody").find("tr:contains('Origin') td:not(:contains('Origin'))");
-        var localCoords = splitOutCoords(attackerVillage.text(), true).split("|");
-
-        var defenderVillage = $("#attack_info_def th:not(:contains('" + _("Defender") + "'))", repTable).closest("tbody").find("tr:contains('Destination') td:not(:contains('Destination'))");
-        var vilCoords = splitOutCoords(defenderVillage.text(), true).split("|");
-
-        var resources = $($("tr td", espionage).get(0));
-        var resz = resources.text().trim().split("  ");
-        if (resources.get(0).innerHTML.indexOf("wood") === -1){
-            resz.unshift("0");
-        }
-        if (resources.get(0).innerHTML.indexOf("stone") === -1){
-            if (resz[1]) { resz.push(resz[1]); resz[1] = "0"; }
-            else resz.push("0");
-        }
-        if (resources.get(0).innerHTML.indexOf("iron") === -1){
-            resz.push("0");
-        }
-        var wood = parseInt(resz[0].replace(".", "")),
-            clay = parseInt(resz[1].replace(".", "")),
-            iron = parseInt(resz[2].replace(".", ""));
-        var battleTimeText = $($("tr td", repTable).get(1)).text().trim().replace(/:\d{3}/, "") + serverTimezones[window.location.host.split(/\W+/)[0].substring(0, 2)];
-        /* Format: MMM(M?) D(D), YYYY HH:mm:ss:mmm GMT+HHmm */
-        var timeThings = battleTimeText.match(/[\w-+]+/g);
-        var month = 0;
-        for (var i=0; i<months.length; i++){
-            if (timeThings[0].match(new RegExp(_(months[i]),"i"))) {
-                month = i+1;
-            }
-        }
-        var date = parseInt(timeThings[1]);
-        var year = parseInt(timeThings[2]);
-        var hour = parseInt(timeThings[3]);
-        var minute = parseInt(timeThings[4]);
-        var second = parseInt(timeThings[5]);
-        var offsets = timeThings[6].replace("GMT", "");
-        var offsetz = [];
-        offsetz[0] = offsets.substring(0, 1);
-        offsetz[1] = offsets.substring(1, 3);
-        offsetz[2] = offsets.substring(3, 5);
-        var offset = ((offsetz[0] === "+") ? -1 : 1) * (parseInt(offsetz[1])*60 + parseInt(offsetz[2]));
-        minute += offset;
-
-        var day = new Date();
-        day.setUTCFullYear(year);
-        day.setUTCMonth(month-1);
-        day.setUTCDate(date);
-        day.setUTCHours(hour);
-        day.setUTCMinutes(minute);
-        day.setUTCSeconds(second);
-
-        var battleTime = day;
-        var buildings;
-        var woodCamp, clayCamp, ironCamp, warehouse, wall;
-        if ($("tr", espionage).length >= 2){
-            buildings = espionage.text();
-            woodCamp = parseInt(buildings.replace(new RegExp("[\\s\\S]*" + _("Timber camp") + " \\(" + _("Level") + " "), "").replace(/\)[\s\S]*/, ""));
-            clayCamp = parseInt(buildings.replace(new RegExp("[\\s\\S]*" + _("Clay pit") + " \\(" + _("Level") + " "), "").replace(/\)[\s\S]*/, ""));
-            ironCamp = parseInt(buildings.replace(new RegExp("[\\s\\S]*" + _("Iron mine") + " \\(" + _("Level") + " "), "").replace(/\)[\s\S]*/, ""));
-            warehouse = parseInt(buildings.replace(new RegExp("[\\s\\S]*" + _("Warehouse") + " \\(" + _("Level") + " "), "").replace(/\)[\s\S]*/, ""));
-            wall = parseInt(buildings.replace(new RegExp("[\\s\\S]*" + _("Wall") + " \\(" + _("Level") + " "), "").replace(/\)[\s\S]*/, ""));
-            woodCamp = (isNaN(woodCamp)) ? 0 : woodCamp;
-            clayCamp = (isNaN(clayCamp)) ? 0 : clayCamp;
-            ironCamp = (isNaN(ironCamp)) ? 0 : ironCamp;
-            warehouse = (isNaN(warehouse)) ? 0 : warehouse;
-            wall = (isNaN(wall)) ? 0 : wall;
-        } else {
-            var woodCamp = 5,
-                clayCamp = 5,
-                ironCamp = 5,
-                warehouse = 10,
-                wall = 0;
-        }
-        var buildz = {};
-        buildz.woodcamp = woodCamp;
-        buildz.claycamp = clayCamp;
-        buildz.ironcamp = ironCamp;
-        buildz.warehouse = warehouse;
-        buildz.wall = wall;
-        /*CHURCH*/
-        buildz.barracks = buildings && parseInt(buildings.replace(new RegExp("[\\s\\S]*" + _("Barracks") + " \\(" + _("Level") + " "), "").replace(/\)[\s\S]*/, "")) || 0;
-        buildz.place = buildings && parseInt(buildings.replace(new RegExp("[\\s\\S]*" + _("Rally point") + " \\(" + _("Level") + " "), "").replace(/\)[\s\S]*/, "")) || 0;
-        buildz.stable = buildings && parseInt(buildings.replace(new RegExp("[\\s\\S]*" + _("Stable") + " \\(" + _("Level") + " "), "").replace(/\)[\s\S]*/, "")) || 0;
-        buildz.garage = buildings && parseInt(buildings.replace(new RegExp("[\\s\\S]*" + _("Workshop") + " \\(" + _("Level") + " "), "").replace(/\)[\s\S]*/, "")) || 0;
-        buildz.snob = buildings && parseInt(buildings.replace(new RegExp("[\\s\\S]*" + _("Academy") + " \\(" + _("Level") + " "), "").replace(/\)[\s\S]*/, "")) || 0;
-        buildz.smith = buildings && parseInt(buildings.replace(new RegExp("[\\s\\S]*" + _("Smithy") + " \\(" + _("Level") + " "), "").replace(/\)[\s\S]*/, "")) || 0;
-        buildz.statue = buildings && parseInt(buildings.replace(new RegExp("[\\s\\S]*" + _("Statue") + " \\(" + _("Level") + " "), "").replace(/\)[\s\S]*/, "")) || 0;
-        buildz.market = buildings && parseInt(buildings.replace(new RegExp("[\\s\\S]*" + _("Market") + " \\(" + _("Level") + " "), "").replace(/\)[\s\S]*/, "")) || 0;
-        buildz.main = buildings && parseInt(buildings.replace(new RegExp("[\\s\\S]*" + _("Headquarters") + " \\(" + _("Level") + " "), "").replace(/\)[\s\S]*/, "")) || 0;
-        buildz.farm = buildings && parseInt(buildings.replace(new RegExp("[\\s\\S]*" + _("Farm") + " \\(" + _("Level") + " "), "").replace(/\)[\s\S]*/, "")) || 0;
-        var linkd = $("<span>" + _("Saved") + "</span>");
-        linkd.css("display", "none");
-
-        repTable.parent().before(linkd);
-        var progress = addReport(parseInt(reportID), localCoords, vilCoords, wood, clay, iron, battleTime, buildz);
-        if (progress === true){
-            linkd.text("Saved");
-            linkd.css("display", "block").css("color", "");
-            console.log("Saved a report! - " + localCoords[0] + "|" + localCoords[1] + " - " + vilCoords[0] + "|" + vilCoords[1] + " - " + parseInt(reportID));
-            return true;
-        } else {
-            linkd.text("Oops! There was an error.");
-            linkd.css("display", "block").css("color", "#F00");
-            console.log("Error with a report! - " + localCoords[0] + "|" + localCoords[1] + " - " + vilCoords[0] + "|" + vilCoords[1] + " - " + parseInt(reportID));
-            return progress;
-        }
-    }
+    } 
 }
