@@ -546,9 +546,10 @@ function def() {
 
                 var HQLevel = latestReport.buildings.main;
                 var catCount = Math.min(catsMin[HQLevel]);
-                troops.catapult = catCount;
-                console.log("Catapult shaping Hq! Village " + targetCoords);
-                console.log(getMaxTroop("catapult"));
+                if (getMaxTroop("catapult") > catCount) {
+                    troops.catapult = catCount;
+                    console.log("Catapult shaping Hq! Village " + targetCoords);
+                }
 
                 insertTroops(troops);
                 targetVil(targetCoords);
