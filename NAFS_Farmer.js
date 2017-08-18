@@ -423,7 +423,7 @@ function def() {
                             },
                             success: function(responseData, textStatus, jqXHR) {
                                 var fakeDOM = $("<div>");
-                                var first = fakeDOM.get(0)
+                                var first = fakeDOM.get(0);
                                 first.class = "NAFSReportDOM";
 
                                 fakeDOM.html(responseData);
