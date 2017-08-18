@@ -747,6 +747,7 @@ function def() {
                     if ($(this).text().indexOf(_("Attack on")) !== -1 && splitOutCoords($(this).text(), true) === element.coords) alreadyAttacking = true;
                 });
 
+                console.log("alreadyAttacking: " + alreadyAttacking);
                 if (!alreadyAttacking && !element.disabled) {
                     var latestReport = element.reports && element.reports[0];
                     if (!latestReport) return false;
@@ -762,7 +763,7 @@ function def() {
 
                         if ((ramWalls || catapultWalls) && wallLevel && wallLevel >= minWallLevel) {
                             console.log("ramWalls entered and wallLevel >= minWall");
-                            
+
                             /*We're ramming or catting walls. We have a wall that's greater than or equal to the minimum level.*/
                             for (var speedGroupID = speedGroups.length-1; speedGroupID>=0; speedGroupID--) {
                                 /*Group 0 is the fasters, therefore this goes slowest first.*/
