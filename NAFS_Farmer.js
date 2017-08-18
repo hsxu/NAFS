@@ -520,8 +520,9 @@ function def() {
                 return;
             }
 
-            for (var i = 0; i < localData.length; i++) { 
+            for (var i = nafsData.villaIndex; i < localData.length; i++) { 
                 element = localData[i];
+                nafsData.villaIndex++;
 
                 var latestReport = element.reports && element.reports[0];
                 if (!latestReport) { 
@@ -549,7 +550,10 @@ function def() {
 
                 insertTroops(troops);
                 targetVil(targetCoords);
-                nafsData.villaIndex++;
+
+                if (ramCount > 0) {
+                    break;
+                }
             }
         }
     } else if (getQuery("screen") === "info_village") {
