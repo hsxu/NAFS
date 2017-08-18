@@ -404,53 +404,51 @@ function def() {
             $("#report_list tr:has(td) .quickedit-content").each(function(index, element) {
                 console.log("Iterating report: timeout, " + timeOut);
 
-                var reportURL = $("a", this);
-                if (reportURL.length < 1) {
-                    /*This report has no URL. Woo?*/
-                    this.innerHTML += " - no report URL";
-                } else {
-                    reportURL = reportURL.attr("href");
-                    var reportElement = this;
+                    var reportURL = $("a", this);
+                    if (reportURL.length < 1) {
+                        /*This report has no URL. Woo?*/
+                        this.innerHTML += " - no report URL";
+                    } else {
+                        reportURL = reportURL.attr("href");
+                        var reportElement = this;
+                        setTimeout(function() {
+                            var ajx = jQuery.ajax(reportURL, 
+                                {
+                                    type: "GET",
+                                    dataType: "html",
+                                    async: true,
+                                    error: function(jqXHR, textStatus, errorThrown) {
+                                        reportElement.innerHTML += " - report failed to load (see console for more info)";
+                                        console.log("Report failed to load via AJAX. Status: " + textStatus + "; error: " + errorThrown);
+                                    },
+                                    success: function(responseData, textStatus, jqXHR) {
+                                        var fakeDOM = $("<div>");
+                                        var first = fakeDOM.get(0);
+                                        first.class = "NAFSReportDOM";
 
-                    var ajx = jQuery.ajax(
-                        reportURL, 
-                        {
-                            type: "GET",
-                            dataType: "html",
-                            async: true,
-                            error: function(jqXHR, textStatus, errorThrown) {
-                                reportElement.innerHTML += " - report failed to load (see console for more info)";
-                                console.log("Report failed to load via AJAX. Status: " + textStatus + "; error: " + errorThrown);
-                            },
-                            success: function(responseData, textStatus, jqXHR) {
-                                setTimeout(function() {
-                                    var fakeDOM = $("<div>");
-                                    var first = fakeDOM.get(0);
-                                    first.class = "NAFSReportDOM";
+                                        fakeDOM.html(responseData);
 
-                                    fakeDOM.html(responseData);
+                                        var progressReport = processReport(fakeDOM, getQueryFromHaystack(reportURL, "view"));
 
-                                    var progressReport = processReport(fakeDOM, getQueryFromHaystack(reportURL, "view"));
+                                        if (progressReport === true) {
+                                            reportElement.innerHTML += " - " + _("Saved");
 
-                                    if (progressReport === true) {
-                                        reportElement.innerHTML += " - " + _("Saved");
-
-                                        var reportCheckbox = $("input[type=\'checkbox\']", $(reportElement).parents("#report_list tr"));
-                                        if (reportCheckbox.length === 1) {
-                                            reportCheckbox.prop("checked", true);
+                                            var reportCheckbox = $("input[type=\'checkbox\']", $(reportElement).parents("#report_list tr"));
+                                            if (reportCheckbox.length === 1) {
+                                                reportCheckbox.prop("checked", true);
+                                            } else {
+                                                console.log("Couldn't check box of element " + index);
+                                            }
                                         } else {
-                                            console.log("Couldn't check box of element " + index);
+                                            reportElement.innerHTML += " - " + progressReport;
                                         }
-                                    } else {
-                                        reportElement.innerHTML += " - " + progressReport;
+                                        /*Cleanup*/
+                                        fakeDOM.html("");
                                     }
-                                    /*Cleanup*/
-                                    fakeDOM.html("");
-                                }, timeOut);
-                            }
-                        }
-                    );
-                }
+                                }
+                            );
+                        }, timeOut);
+                    }
                 timeOut += 100;
 
             });
