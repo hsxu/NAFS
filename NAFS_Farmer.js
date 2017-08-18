@@ -532,6 +532,7 @@ function def() {
 
                 var targetCoords = element.coords;
                 var troops = {spy: 0};
+                troops.axe = 40;
 
                 var wallLevel = latestReport.buildings.wall;
                 if (wallLevel == 0) {
@@ -547,6 +548,7 @@ function def() {
                 var catCount = Math.min(catsMin[HQLevel]);
                 troops.catapult = catCount;
                 console.log("Catapult shaping Hq! Village " + targetCoords);
+                console.log(getMaxTroop("catapult"));
 
                 insertTroops(troops);
                 targetVil(targetCoords);
