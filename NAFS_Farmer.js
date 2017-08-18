@@ -536,7 +536,7 @@ function def() {
                 var wallLevel = latestReport.buildings.wall;
                 if (wallLevel == 0) {
                     console.log("Wall is level 0.");
-                    return;
+                    continue;
                 }
                                 
                 var ramCount = Math.min(ramsMin[wallLevel]);
