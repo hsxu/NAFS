@@ -403,7 +403,7 @@ function def() {
             var timeOut = 100;
             $("#report_list tr:has(td) .quickedit-content").each(function(index, element) {
                 console.log("Iterating report")
-                
+
                 setTimeout(function() {
                     var reportURL = $("a", this);
                     if (reportURL.length < 1) {
@@ -414,7 +414,7 @@ function def() {
                         var reportElement = this;
 
                         var ajx = jQuery.ajax(reportURL,
-                            {type: "GET",
+                            type: "GET",
                             dataType: "html",
                             async: true,
                             error: function(jqXHR, textStatus, errorThrown) {
@@ -443,7 +443,6 @@ function def() {
                                 }
                                 /*Cleanup*/
                                 fakeDOM.html("");
-                            }
                         });
                     }
                 }, timeOut);
