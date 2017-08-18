@@ -112,57 +112,6 @@ var _a = { /*translations. Duh*/
         "Tribe" : "Tribe",
         "Actions" : "Actions",
         "Defender" : "Defender"
-    },
-    "no" : {
-        "Headquarters" : "Hovedkvarter",
-        "Barracks" : "Brakker",
-        "Stable" : "Stall",
-        "Workshop" : "Verksted",
-        "Church" : "Kirke",
-        "First church" : "Første Kirke",
-        "Academy" : "Akademi",
-        "Smithy" : "Smie",
-        "Rally point" : "Samlingsplass",
-        "Statue" : "Statue",
-        "Market" : "Marked",
-        "Timber camp" : "Hogstfelt",
-        "Clay pit" : "Leirgrav",
-        "Iron mine" : "Jerngruve",
-        "Farm" : "Gård",
-        "Warehouse" : "Varehus",
-        "Hiding place" : "Skjulested",
-        "Wall" : "Mur",
-        "Please run this from the 'attacks' menu!" : "Vennligst kjør dette scrtiptet fra 'angrep' menyen på rapport siden (ikke alle).",
-        "SAVED" : "LAGRET",
-        "Saved" : "Lagret",
-        "NOT SAVED" : "IKKE LAGRET (Landsby deaktivert?)",
-        "Are you sure you've imported some reports?" : "Er du sikker på at du har importert rapporter?",
-        "Changed" : "Endret",
-        "Attack on" : "Angrep på",
-        "No villages left to attack! Either add more villages, or wait for the attacks to complete." : "Ingen flere byer igjen til å angripe! Vennligst legg til flere byer, eller vent til angrepene har truffet.",
-        "Add to farm list for " : "Legg til i listen over farms for ",
-        "Enable farm for " : "Aktiver farm for ",
-        "Disable farm for " : "Deaktiver farm for ",
-        "Added" : "Lagt til",
-        "Enabled" : "Aktivert",
-        "Disabled" : "Deaktivert",
-        "Level" : "Nivå",
-        "jan" : "Jan",
-        "feb" : "Feb",
-        "mar" : "Mar",
-        "apr" : "Apr",
-        "may" : "Mai",
-        "jun" : "Juni",
-        "jul" : "Juli",
-        "aug" : "Aug",
-        "sep" : "Sep",
-        "oct" : "Okt",
-        "nov" : "Nov",
-        "dec" : "Des",
-        "Coordinates" : "Koordinater",
-        "Tribe" : "Stamme",
-        "Actions" : "Handlinger",
-        "Defender" : "Forsvarer"
     }
 };
 
@@ -737,7 +686,13 @@ function def() {
             var maxShapeTroops = objectifyTroopSettings("maxShapeTroops");
             var leaveShapeTroops = objectifyTroopSettings("leaveShapeTroops");
 
-            var troopsEntered = false;
+
+            // How far away is each village?
+            // What's the time limit by ram?
+
+            // What's the criteria to cat down a village? HQ > 5?
+            // How many axes to send?
+
 
             localData.forEach(function(element, index, array) {
                 if (troopsEntered) return false;
@@ -875,59 +830,6 @@ function def() {
                     
                     //Fixed bug: If not shaping, leaveShapeTroops is null.
                     leaveShapeTroops.spy = 1;
-                
-
-                    if (farm && (!rescout || (Number(new Date()) - latestReport.battleTime) <= hoursToRescout * 60 * 60 * 1000) && getMaxTroop("spy") > 1) {
-
-                        console.log("hit inside logic");
-                        console.log(latestReport);
-
-                        var hoursAgo = (Number(new Date()) - latestReport.battleTime) / 60 / 60 / 1000;
-                        var origWood = latestReport.wood,
-                            origClay = latestReport.clay,
-                            origIron = latestReport.iron;
-                        var woodCamp = latestReport.buildings.woodcamp,
-                            clayCamp = latestReport.buildings.claycamp,
-                            ironCamp = latestReport.buildings.ironcamp,
-                            warehouse = latestReport.buildings.warehouse;
-                        var currWood = Math.min(origWood + (resourceRates[woodCamp] * hoursAgo * getWorldSpeed()), warehouseCapacity[warehouse]),
-                            currClay = Math.min(origClay + (resourceRates[clayCamp] * hoursAgo * getWorldSpeed()), warehouseCapacity[warehouse]),
-                            currIron = Math.min(origIron + (resourceRates[ironCamp] * hoursAgo * getWorldSpeed()), warehouseCapacity[warehouse]);
-
-                        var distance = element.distance;
-
-                        var sendingTroops = false;
-                        for (var speedGroupID = 0; speedGroupID<speedGroups.length; speedGroupID++) {
-                            /*Group 0 is the fasters, therefore this goes fastest first.*/
-                            var slowestSpeedofGroup = slowestSpeedofGroups[speedGroupID];
-                            var hours = distance * (slowestSpeedofGroup / getUnitSpeed()) / 60;
-                            var newWood = currWood + (resourceRates[woodCamp] * hours * getWorldSpeed()),
-                                newClay = currClay + (resourceRates[clayCamp] * hours * getWorldSpeed()),
-                                newIron = currIron + (resourceRates[ironCamp] * hours * getWorldSpeed());
-                            var possibleHaul = newWood + newClay + newIron;
-                            for (var unitID in speedGroups[speedGroupID]){
-                                var unit = speedGroups[speedGroupID][unitID];
-                                var troopCount = Math.min(getMaxTroop(unit) - leaveFarmTroops[unit], maxFarmTroops[unit] === -1 ? getMaxTroop(unit) : maxFarmTroops[unit], Math.ceil(possibleHaul / unitCarry[unit]));
-                                if (troopCount >= minFarmTroops[unit] && troopCount > 0) {
-                                    possibleHaul -= unitCarry[unit] * troopCount;
-                                    sendingTroops = true;
-                                    troops[unit] = troopCount;
-                                }
-                            }
-                            if (sendingTroops) break;
-                        }
-
-                        console.log(sendingTroops);
-
-                        if (sendingTroops) {
-                            console.log("Farming! Village " + targetCoords);
-                            insertTroops(troops);
-                            targetVil(targetCoords);
-
-                            troopsEntered = true;
-                            return false;
-                        }
-                    }
 
                     minimumAchieved = false; /*Unnecessary, but oh well.*/
                     troops = {spy: minScout};
@@ -1012,6 +914,7 @@ function processReport(doc, reportID){
     /*We're on *a* report screen.*/
     var espionage = $("#attack_spy_resources, #attack_spy_buildings_left", doc);
     if (espionage.length >= 1) {
+        console.log("new style");
         /* NEW REPORT STYUHL */
         var repTable = espionage.closest("tbody");
         var defender = $("#attack_info_def th:not(:contains('" + _("Defender") + "'))", repTable);
@@ -1139,6 +1042,7 @@ function processReport(doc, reportID){
         }
     } else if ($("#attack_spy", doc).length >= 1) {
         /*OLD STYLE *BLERGH* */
+        console.log("old style");
         var espionage = $("#attack_spy", doc);
         var repTable = espionage.parent().parent().parent();
         var defender = $("#attack_info_def th:not(:contains('" + _("Defender") + "'))", repTable);
