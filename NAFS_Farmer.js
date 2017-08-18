@@ -402,7 +402,7 @@ function def() {
             /*Report: Attack menu*/
             var timeOut = 100;
             $("#report_list tr:has(td) .quickedit-content").each(function(index, element) {
-                console.log("Iterating report")
+                console.log("Iterating report: timeout, " + timeOut);
 
                 setTimeout(function() {
                     var reportURL = $("a", this);
