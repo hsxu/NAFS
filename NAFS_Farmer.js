@@ -423,7 +423,8 @@ function def() {
                             },
                             success: function(responseData, textStatus, jqXHR) {
                                 var fakeDOM = $("<div>");
-                                fakeDOM.get(0).class = "NAFSReportDOM";
+                                var first = fakeDOM.get(0)
+                                first.class = "NAFSReportDOM";
 
                                 fakeDOM.html(responseData);
 
@@ -432,7 +433,7 @@ function def() {
                                 if (progressReport === true) {
                                     reportElement.innerHTML += " - " + _("Saved");
 
-                                    var reportCheckbox = $("input[type='checkbox']", $(reportElement).parents("#report_list tr"));
+                                    var reportCheckbox = $("input[type=\'checkbox\']", $(reportElement).parents("#report_list tr"));
                                     if (reportCheckbox.length === 1) {
                                         reportCheckbox.prop("checked", true);
                                     } else {
