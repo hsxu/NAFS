@@ -630,7 +630,7 @@ function processReport(doc, reportID){
 
         var battleTime = day;
         var buildings;
-        var woodCamp, clayCamp, ironCamp, warehouse;
+        var woodCamp, clayCamp, ironCamp, warehouse, wall;
         if ($("#attack_spy_building_data", repTable).length >= 1){
             buildings = JSON.parse($("#attack_spy_building_data", repTable).val());
             buildings.forEach(function(element, index, array){
