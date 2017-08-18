@@ -449,7 +449,7 @@ function def() {
         } else if (getQuery("view") === "" && (getQuery("mode") === "all" || getQuery("mode") === "")) {
             errorBox(_("Please run this from the 'attacks' menu!"));
         }
-    else if (getQuery("screen") === "place" && $("#units_form").length === 0 && $("#command-data-form").length === 0) {
+    } else if (getQuery("screen") === "place" && $("#units_form").length === 0 && $("#command-data-form").length === 0) {
         /*Rally confirm page.*/
         if (!localData) {
             errorBox(_("Are you sure you've imported some reports?"));
@@ -520,7 +520,7 @@ function def() {
                 return;
             }
 
-            for (int i = 0; i < localData.length; i++) { 
+            for (var i = 0; i < localData.length; i++) { 
                 element = localData[i];
 
                 var latestReport = element.reports && element.reports[0];
