@@ -563,7 +563,8 @@ function def() {
         localData.sort(function(a, b) {
             return a.distance - b.distance;
         });
-        console.log("villages sorted")
+        nafsData.villages[testLocalCoords] = localData;
+        console.log("villages sorted and stored.")
 
         return;
     }
