@@ -565,8 +565,6 @@ function def() {
         });
         nafsData.villages[testLocalCoords] = localData;
         console.log("villages sorted and stored.")
-
-        return;
     }
     setLocalStorage(nafsData);
 }
