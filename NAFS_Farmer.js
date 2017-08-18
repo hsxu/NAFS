@@ -404,25 +404,26 @@ function def() {
             $("#report_list tr:has(td) .quickedit-content").each(function(index, element) {
                 console.log("Iterating report: timeout, " + timeOut);
 
-                setTimeout(function() {
-                    var reportURL = $("a", this);
-                    if (reportURL.length < 1) {
-                        /*This report has no URL. Woo?*/
-                        this.innerHTML += " - no report URL";
-                    } else {
-                        reportURL = reportURL.attr("href");
-                        var reportElement = this;
+                var reportURL = $("a", this);
+                if (reportURL.length < 1) {
+                    /*This report has no URL. Woo?*/
+                    this.innerHTML += " - no report URL";
+                } else {
+                    reportURL = reportURL.attr("href");
+                    var reportElement = this;
 
-                        var ajx = jQuery.ajax(reportURL, 
-                            {
-                                type: "GET",
-                                dataType: "html",
-                                async: true,
-                                error: function(jqXHR, textStatus, errorThrown) {
-                                    reportElement.innerHTML += " - report failed to load (see console for more info)";
-                                    console.log("Report failed to load via AJAX. Status: " + textStatus + "; error: " + errorThrown);
-                                },
-                                success: function(responseData, textStatus, jqXHR) {
+                    var ajx = jQuery.ajax(
+                        reportURL, 
+                        {
+                            type: "GET",
+                            dataType: "html",
+                            async: true,
+                            error: function(jqXHR, textStatus, errorThrown) {
+                                reportElement.innerHTML += " - report failed to load (see console for more info)";
+                                console.log("Report failed to load via AJAX. Status: " + textStatus + "; error: " + errorThrown);
+                            },
+                            success: function(responseData, textStatus, jqXHR) {
+                                setTimeout(function() {
                                     var fakeDOM = $("<div>");
                                     var first = fakeDOM.get(0);
                                     first.class = "NAFSReportDOM";
@@ -445,11 +446,11 @@ function def() {
                                     }
                                     /*Cleanup*/
                                     fakeDOM.html("");
-                                }
+                                }, timeOut);
                             }
-                        );
-                    }
-                }, timeOut);
+                        }
+                    );
+                }
                 timeOut += 100;
 
             });
