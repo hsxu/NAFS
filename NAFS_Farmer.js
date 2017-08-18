@@ -410,7 +410,7 @@ function def() {
                     var reportElement = this;
 
                     var ajx = jQuery.ajax(reportURL,
-                        type: "GET",
+                        {type: "GET",
                         dataType: "html",
                         async: true,
                         error: function(jqXHR, textStatus, errorThrown) {
@@ -516,8 +516,8 @@ function def() {
             }
 
             if (nafsData.villaIndex > localData.length - 1) {
-                nafsData.villaIndex = 0;
-                console.log("List repeated!");
+                console.log("Index too high, clear LocalStorage!");
+                return;
             }
 
             for (int i = 0; i < localData.length; i++) { 
