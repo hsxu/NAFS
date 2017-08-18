@@ -758,8 +758,11 @@ function def() {
                     /*Shaping is allowed, we have building data, and either we're not rescouting or it's under the hours to rescout value.*/
                     if (shape && latestReport.buildings && (!rescout || (Number(new Date()) - latestReport.battleTime) <= hoursToRescout * 60 * 60 * 1000) && getMaxTroop("spy") > leaveShapeTroops.spy) {
                         var wallLevel = latestReport.buildings.wall;
+                        console.log("Shape entered");
 
                         if ((ramWalls || catapultWalls) && wallLevel && wallLevel >= minWallLevel) {
+                            console.log("ramWalls entered and wallLevel >= minWall");
+                            
                             /*We're ramming or catting walls. We have a wall that's greater than or equal to the minimum level.*/
                             for (var speedGroupID = speedGroups.length-1; speedGroupID>=0; speedGroupID--) {
                                 /*Group 0 is the fasters, therefore this goes slowest first.*/
@@ -871,9 +874,7 @@ function def() {
                     
                     //Fixed bug: If not shaping, leaveShapeTroops is null.
                     leaveShapeTroops.spy = 1;
-                    console.log("7");
-                    console.log(getMaxTroop("spy"));
-                    console.log(leaveShapeTroops.spy);
+                
 
                     if (farm && (!rescout || (Number(new Date()) - latestReport.battleTime) <= hoursToRescout * 60 * 60 * 1000) && getMaxTroop("spy") > 1) {
 
