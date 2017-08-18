@@ -402,7 +402,8 @@ function def() {
             /*Report: Attack menu*/
             var timeOut = 100;
             $("#report_list tr:has(td) .quickedit-content").each(function(index, element) {
-
+                console.log("Iterating report")
+                
                 setTimeout(function() {
                     var reportURL = $("a", this);
                     if (reportURL.length < 1) {
