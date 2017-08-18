@@ -594,8 +594,9 @@ function targetVil(vilCoords){
 function def() {
     var nafsData = getLocalStorage();
     var localCoords = getLocalCoords();
-    console.log(localCoords);
-    var localData = nafsData.villages[localCoords] || nafsData.villages[localCoords[0] + "|" + localCoords[1]];
+    var testLocalCoords = ["574", "510"];
+    var localData = nafsData.villages[testLocalCoords] || nafsData.villages[testLocalCoords[0] + "|" + testLocalCoords[1]];
+
 
     /*Assume we're not gonna try AJAX-ing a report list page. It probably wouldn't be sensible, if the user wants any feedback.*/
     if (getQuery("screen") === "report"){
