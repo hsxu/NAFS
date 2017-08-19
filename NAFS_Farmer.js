@@ -231,6 +231,7 @@ function addReport(reportID, localCoords, vilCoords, wood, clay, iron, battleTim
 
     if (typeof vilIndex === "undefined"){
         var mainVillTestCoords = ["579", "504"];
+        console.log(localCoords);
 
         vilIndex = nafsData.villages[localCoords].push({
             coords: vilCoords,
