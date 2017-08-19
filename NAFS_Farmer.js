@@ -396,9 +396,6 @@ function def() {
     const REPORT = "report";
 
     //Resort when rally point is changed. Will have to be moved into the rally point.
-    //Distance recalculated when rally point is changed.
-    //Localcoord set to some universal value.
-    //JSON needs to be set to dictionary instead of list..
 
     //Hit walls only - first mode.
     //Hit with catapults - second mode.
@@ -578,7 +575,16 @@ function executeRallyLogic(localData, localCoords, nafsData) {
 
         if (!nafsData.villaIndex) {
             nafsData.villaIndex = 0;
+            localData.sort(function(a, b) {
+                return a.distance - b.distance;
+            });
         }
+
+        if (!nafsData.currVillaHQ) {
+            nafsData.currVillaHQ = 0;
+        }
+
+        nafsData.villages[string_origin] = localData;
 
         if (nafsData.villaIndex > localData.length - 1) {
             console.log("Index too high, clear LocalStorage!");
@@ -587,7 +593,6 @@ function executeRallyLogic(localData, localCoords, nafsData) {
 
         for (var i = nafsData.villaIndex; i < localData.length; i++) { 
             element = localData[i];
-            nafsData.villaIndex++;
 
             var latestReport = element.reports && element.reports[0];
             if (!latestReport) { 
@@ -599,7 +604,7 @@ function executeRallyLogic(localData, localCoords, nafsData) {
             var troops = {spy: 0};
             troops.axe = 40;
 
-            var wallLevel = latestReport.buildings.wall;
+            /*var wallLevel = latestReport.buildings.wall;
             if (wallLevel == 0) {
                 console.log("Wall is level 0.");
                 continue;
@@ -607,13 +612,24 @@ function executeRallyLogic(localData, localCoords, nafsData) {
                             
             var ramCount = Math.min(ramsMin[wallLevel]);
             troops.ram = ramCount;
-            console.log("Ram wall shaping! Village " + targetCoords);
+            console.log("Ram wall shaping! Village " + targetCoords);*/
 
-            var HQLevel = latestReport.buildings.main;
-            var catCount = Math.min(catsMin[HQLevel]);
+            var HQLevel;
+            
+            if (nafsData.currVillaHQ == 0) {
+                nafsData.currVillaHQ = latestReport.buildings.main;
+            }
+
+            if (nafsData.currVillaHQ == 1) {
+                nafsData.currVillaHQ = 0;
+                nafsData.villaIndex++;
+                continue;
+            }
+
+            var catCount = catsMin[nafsData.currVillaHQ];
             if (getMaxTroop("catapult") > catCount) {
-                //troops.catapult = catCount;
-                troops.catapult = 0;
+                troops.catapult = catCount;
+                nafsData.currVillaHQ -= 1;
                 console.log("Catapult shaping Hq! Village " + targetCoords);
             }
 
