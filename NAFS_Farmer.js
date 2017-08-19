@@ -118,7 +118,10 @@ var settings;
 
 function getLocalStorage() {
     if (!localStorage){ alert("Local storage doesn't seem to be enabled. NAFS won't function without it!"); throw "Whoops. Local storage isn't enabled, apparently."; }
-    if (!localStorage.NAFSData) localStorage.NAFSData = '{"villages":{}, "settings":{}}';
+    if (!localStorage.NAFSData) { 
+        localStorage.NAFSData = '{"villages":{}, "settings":{}}';
+        setSetting('distance_calced_from', '500|500');
+    }
     if (typeof settings === "undefined") settings = JSON.parse(localStorage.NAFSData);
     return settings;
 }
@@ -206,9 +209,6 @@ function getSetting(name, def){
 function setSetting(name, val){
     var nafsData = getLocalStorage();
     if (typeof nafsData.settings === "undefined") nafsData.settings = {};
-
-    if (val === "true") val = true;
-    if (val === "false") val = false;
 
     nafsData.settings[name] = val;
     setLocalStorage(nafsData);
