@@ -186,23 +186,17 @@ function getLocalCoords() {
     temp = splitOutCoords(temp, true);
     temp = temp.split("|").length > 1 && temp.split("|");
     /*Split "VillName (XXX|YYY) into ("XXX","YYY")*/
-    return temp;
+    return temp;    
 }
 
-function getLocalName() {
-    return $("#menu_row2 a.nowrap").text().trim();
-}
 
 /*Fetch a setting from the localStorage*/
 function getSetting(name, def){
     var nafsData = getLocalStorage();
     if (typeof nafsData.settings !== "undefined" && typeof nafsData.settings[name] !== "undefined") {
-        var tempData = nafsData.settings[name];
-        if (tempData === "true") tempData = true;
-        if (tempData === "false") tempData = false;
-        return tempData;
-    }  /*If settings exist, and setting exists, return it (slightly modified).*/
-    return def; /*Else, return default.*/
+        return nafsData.settings[name];
+    }  
+    return def; 
 }
 
 /*Save a setting to the localStorage*/
@@ -214,6 +208,11 @@ function setSetting(name, val){
     setLocalStorage(nafsData);
 
     return true;
+}
+
+//String: home, dest
+function calcDistance(home, dest) {
+    return (Math.floor(Math.sqrt(Math.pow(parseInt(dest.split("|")[0])-home.split("|")[0],2)+Math.pow(parseInt(dest.split("|")[1])-home.split("|")[1],2))*100)/100);
 }
 
 function addReport(reportID, localCoords, vilCoords, wood, clay, iron, battleTime, buildings){
@@ -432,7 +431,7 @@ function def() {
     setLocalStorage(nafsData);
 }
 
-function executeReportLogic() {
+function executeReportLogic() { 
     if (getQuery("view") === "" && getQuery("mode") === "attack") {
         /*Report: Attack menu*/
         var timeOut = 100;
@@ -522,6 +521,26 @@ function executeRallyLogic(localData, localCoords, nafsData) {
         return;
     }
 
+    // Change distance_calced_from and recalc all distances and sort, if distance_calced from is not from current village.
+    var distance_calced_from = getSetting("distance_calced_from", 0);
+    var coords_arr = getLocalCoords();
+    var string_local_coords = coords_arr[0] + "|" + coords_arr[1];
+
+    if (distance_calced_from !== string_local_coords) {
+        setSetting("distance_calced_from", string_local_coords);
+
+        localData.forEach(function(element, index) {
+            element.distance = calcDistance(string_local_coords, element.coords);
+        });
+
+        localData.sort(function(a, b) {
+            return a.distance - b.distance;
+        });
+
+        nafsData.villages[localCoords] = localData;
+        console.log("villages sorted and stored.")
+    }
+
     var errorBo = $(".error_box");
     if (errorBo.length > 0) {
         if (errorBo.text().trim().indexOf("can only attack each other when the bigger player's") !== -1 || errorBo.text().trim().indexOf("has been banned and cannot be attacked") !== -1) {
@@ -608,12 +627,6 @@ function executeRallyLogic(localData, localCoords, nafsData) {
 }
 
 function executeSortLogic(localData, localCoords, nafsData) {
-
-    localData.sort(function(a, b) {
-        return a.distance - b.distance;
-    });
-    nafsData.villages[localCoords] = localData;
-    console.log("villages sorted and stored.")
 }
 
 /*Returns either a boolean ("It went well!") or a message of what went wrong.*/
@@ -636,40 +649,51 @@ function processReport(doc, reportID){
         var vilCoords = splitOutCoords(defenderVillage.text(), true).split("|");
 
         var resources = $("#attack_spy_resources td", repTable);
-        var resz = resources.text().trim().split(/\s+/);
+        var res = resources.text().trim().split(/\s+/);
+
         if (resources.get(0).innerHTML.indexOf("wood") === -1){
-            resz.unshift("0");
+            res.unshift("0");
         }
+
         if (resources.get(0).innerHTML.indexOf("stone") === -1){
-            if (resz[1]) { resz.push(resz[1]); resz[1] = "0"; }
-            else resz.push("0");
+            if (res[1]) { 
+                res.push(res[1]); 
+                res[1] = "0"; 
+            } else { 
+                res.push("0");
+            }
         }
+
         if (resources.get(0).innerHTML.indexOf("iron") === -1){
-            resz.push("0");
+            res.push("0");
         }
-        var wood = parseInt(resz[0].replace(".", "")),
-            clay = parseInt(resz[1].replace(".", "")),
-            iron = parseInt(resz[2].replace(".", ""));
+
+        var wood = parseInt(res[0].replace(".", "")),
+            clay = parseInt(res[1].replace(".", "")),
+            iron = parseInt(res[2].replace(".", ""));
+
         var battleTimeText = $($("tr td", repTable).get(1)).text().trim().replace(/:\d{3}/, "") + serverTimezones[window.location.host.split(/\W+/)[0].substring(0, 2)];
         /* Format: MMM(M?) D(D), YYYY HH:mm:ss:mmm GMT+HHmm */
-        var timeThings = battleTimeText.match(/[\w-+]+/g);
+        var times = battleTimeText.match(/[\w-+]+/g);
         var month = 0;
         for (var i=0; i<months.length; i++){
-            if (timeThings[0].match(new RegExp(_(months[i]),"i"))) {
+            if (times[0].match(new RegExp(_(months[i]),"i"))) {
                 month = i+1;
             }
         }
-        var date = parseInt(timeThings[1]);
-        var year = parseInt(timeThings[2]);
-        var hour = parseInt(timeThings[3]);
-        var minute = parseInt(timeThings[4]);
-        var second = parseInt(timeThings[5]);
-        var offsets = timeThings[6].replace("GMT", "");
-        var offsetz = [];
-        offsetz[0] = offsets.substring(0, 1);
-        offsetz[1] = offsets.substring(1, 3);
-        offsetz[2] = offsets.substring(3, 5);
-        var offset = ((offsetz[0] === "+") ? -1 : 1) * (parseInt(offsetz[1])*60 + parseInt(offsetz[2]));
+
+        var date = parseInt(times[1]);
+        var year = parseInt(times[2]);
+        var hour = parseInt(times[3]);
+        var minute = parseInt(times[4]);
+        var second = parseInt(times[5]);
+
+        var offsets = times[6].replace("GMT", "");
+        var offset = [];
+        offset[0] = offsets.substring(0, 1);
+        offset[1] = offsets.substring(1, 3);
+        offset[2] = offsets.substring(3, 5);
+        var offset = ((offset[0] === "+") ? -1 : 1) * (parseInt(offset[1])*60 + parseInt(offset[2]));
         minute += offset;
 
         var day = new Date();
@@ -704,6 +728,7 @@ function processReport(doc, reportID){
             warehouse = 10;
             wall = 0;
         }
+
         var build = {};
         build.woodcamp = woodCamp;
         build.claycamp = clayCamp;
