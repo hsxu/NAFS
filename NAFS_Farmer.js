@@ -396,6 +396,14 @@ function def() {
     const SCREEN = "screen";
     const REPORT = "report";
 
+    //Resort when rally point is changed. Will have to be moved into the rally point.
+    //Distance recalculated when rally point is changed.
+    //Localcoord set to some universal value.
+
+    //Hit walls only - first mode.
+    //Hit with catapults - second mode.
+    //Building levels need to be changed after scout report. 
+
     var nafsData = getLocalStorage();
     //var localCoords = getLocalCoords();
     var testLocalCoords = ["574", "510"];
@@ -583,7 +591,8 @@ function executeRallyLogic(localData, localCoords, nafsData) {
             var HQLevel = latestReport.buildings.main;
             var catCount = Math.min(catsMin[HQLevel]);
             if (getMaxTroop("catapult") > catCount) {
-                troops.catapult = catCount;
+                //troops.catapult = catCount;
+                troops.catapult = 0;
                 console.log("Catapult shaping Hq! Village " + targetCoords);
             }
 
@@ -598,6 +607,7 @@ function executeRallyLogic(localData, localCoords, nafsData) {
 }
 
 function executeSortLogic(localData, localCoords, nafsData) {
+
     localData.sort(function(a, b) {
         return a.distance - b.distance;
     });
