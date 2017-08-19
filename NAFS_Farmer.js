@@ -228,11 +228,14 @@ function addReport(reportID, localCoords, vilCoords, wood, clay, iron, battleTim
         if (element.coords === vilCoords) vilIndex = index;
     });
 
+
     if (typeof vilIndex === "undefined"){
+        var mainVillTestCoords = ["579", "504"];
+
         vilIndex = nafsData.villages[localCoords].push({
             coords: vilCoords,
             disabled: false,
-            distance: (Math.floor(Math.sqrt(Math.pow(parseInt(vilCoords.split("|")[0])-localCoords.split("|")[0],2)+Math.pow(parseInt(vilCoords.split("|")[1])-localCoords.split("|")[1],2))*100)/100),
+            distance: (Math.floor(Math.sqrt(Math.pow(parseInt(vilCoords.split("|")[0])-mainVillTestCoords.split("|")[0],2)+Math.pow(parseInt(vilCoords.split("|")[1])-mainVillTestCoords.split("|")[1],2))*100)/100),
             reports: [ ]
         });
         nafsData.villages[localCoords].forEach(function(element, index) {
@@ -390,192 +393,216 @@ function targetVil(vilCoords){
 }
 
 function def() {
+    const SCREEN = "screen";
+    const REPORT = "report";
+
     var nafsData = getLocalStorage();
-    var localCoords = getLocalCoords();
+    //var localCoords = getLocalCoords();
     var testLocalCoords = ["574", "510"];
-    var localData = nafsData.villages[testLocalCoords] || nafsData.villages[testLocalCoords[0] + "|" + testLocalCoords[1]];
+    var localCoords = testLocalCoords;
+
+    var localData = nafsData.villages[localCoords] || nafsData.villages[localCoords[0] + "|" + localCoords[1]];
+    var isReportScreen = getQuery(SCREEN) === REPORT;
+    var isRallyConfirmScreen = getQuery(SCREEN) === "place" && 
+                               $("#units_form").length === 0 && 
+                               $("#command-data-form").length === 0;
+    var isRallyScreen = getQuery(SCREEN) === "place" && 
+                        ($("#units_form").length > 0 || $("#command-data-form").length > 0);
+    var isSortScreen = getQuery(SCREEN) === "info_village";
 
 
-    /*Assume we're not gonna try AJAX-ing a report list page. It probably wouldn't be sensible, if the user wants any feedback.*/
-    if (getQuery("screen") === "report") {
-        if (getQuery("view") === "" && getQuery("mode") === "attack") {
-            /*Report: Attack menu*/
-            var timeOut = 100;
-            $("#report_list tr:has(td) .quickedit-content").each(function(index, element) {
-                console.log("Iterating report: timeout, " + timeOut);
+    if (isReportScreen) {
+        executeReportLogic();
+    } else if (isRallyConfirmScreen) {
+        executeRallyConfirmLogic(localData);
+    } else if (isRallyScreen) {
+        executeRallyLogic(localData, localCoords, nafsData);
+    } else if (isSortScreen) {
+        executeSortLogic(localData, localCoords, nafsData);
+    }
+    setLocalStorage(nafsData);
+}
 
-                    var reportURL = $("a", this);
-                    if (reportURL.length < 1) {
-                        /*This report has no URL. Woo?*/
-                        this.innerHTML += " - no report URL";
-                    } else {
-                        reportURL = reportURL.attr("href");
-                        var reportElement = this;
-                        setTimeout(function() {
-                            var ajx = jQuery.ajax(reportURL, 
-                                {
-                                    type: "GET",
-                                    dataType: "html",
-                                    async: true,
-                                    error: function(jqXHR, textStatus, errorThrown) {
-                                        reportElement.innerHTML += " - report failed to load (see console for more info)";
-                                        console.log("Report failed to load via AJAX. Status: " + textStatus + "; error: " + errorThrown);
-                                    },
-                                    success: function(responseData, textStatus, jqXHR) {
-                                        var fakeDOM = $("<div>");
-                                        var first = fakeDOM.get(0);
-                                        first.class = "NAFSReportDOM";
+function executeReportLogic() {
+    if (getQuery("view") === "" && getQuery("mode") === "attack") {
+        /*Report: Attack menu*/
+        var timeOut = 100;
+        $("#report_list tr:has(td) .quickedit-content").each(function(index, element) {
+            console.log("Iterating report: timeout, " + timeOut);
 
-                                        fakeDOM.html(responseData);
+            var reportURL = $("a", this);
+            if (reportURL.length < 1) {
+                /*This report has no URL. Woo?*/
+                this.innerHTML += " - no report URL";
+            } else {
+                reportURL = reportURL.attr("href"); 
+                var reportElement = this;
+                setTimeout(function() {
+                    var ajx = jQuery.ajax(reportURL, {
+                        type: "GET",
+                        dataType: "html",
+                        async: true,
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            reportElement.innerHTML += " - report failed to load (see console for more info)";
+                            console.log("Report failed to load via AJAX. Status: " + textStatus + "; error: " + errorThrown);
+                        },
+                        success: function(responseData, textStatus, jqXHR) {
+                            var fakeDOM = $("<div>");
+                            var first = fakeDOM.get(0);
+                            first.class = "NAFSReportDOM";
+                            fakeDOM.html(responseData);
 
-                                        var progressReport = processReport(fakeDOM, getQueryFromHaystack(reportURL, "view"));
+                            var progressReport = processReport(fakeDOM, getQueryFromHaystack(reportURL, "view"));
 
-                                        if (progressReport === true) {
-                                            reportElement.innerHTML += " - " + _("Saved");
+                            if (progressReport === true) {
+                                reportElement.innerHTML += " - " + _("Saved");
 
-                                            var reportCheckbox = $("input[type=\'checkbox\']", $(reportElement).parents("#report_list tr"));
-                                            if (reportCheckbox.length === 1) {
-                                                reportCheckbox.prop("checked", true);
-                                            } else {
-                                                console.log("Couldn't check box of element " + index);
-                                            }
-                                        } else {
-                                            reportElement.innerHTML += " - " + progressReport;
-                                        }
-                                        /*Cleanup*/
-                                        fakeDOM.html("");
-                                    }
+                                var reportCheckbox = $("input[type=\'checkbox\']", $(reportElement).parents("#report_list tr"));
+                                if (reportCheckbox.length === 1) {
+                                    reportCheckbox.prop("checked", true);
+                                } else {
+                                    console.log("Couldn't check box of element " + index);
                                 }
-                            );
-                        }, timeOut);
-                    }
-                timeOut += 100;
-
-            });
-        } else if (getQuery("view") !== "") {
-            /*We're on an individual report!*/
-            processReport(document, getQuery("view"));
-        } else if (getQuery("view") === "" && (getQuery("mode") === "all" || getQuery("mode") === "")) {
-            errorBox(_("Please run this from the 'attacks' menu!"));
-        }
-    } else if (getQuery("screen") === "place" && $("#units_form").length === 0 && $("#command-data-form").length === 0) {
-        /*Rally confirm page.*/
-        if (!localData) {
-            errorBox(_("Are you sure you've imported some reports?"));
-            return;
-        }
-
-        var targetCoords = splitOutCoords($(".village_anchor").text(), true);
-        var vilIndex;
-        localData.forEach(function(element, index) {
-            if (element.coords === targetCoords) vilIndex = index;
-        });
-        if (typeof vilIndex === "undefined") {
-            errorBox(_("Are you sure this village is in the NAFS list?"));
-            $("#troop_confirm_go").focus();
-            return;
-        }
-        var nafsLocalData = localData;
-        var targetVillage = nafsLocalData[vilIndex];
-        var latestReport = targetVillage && targetVillage.reports && targetVillage.reports[0];
-        $("#troop_confirm_go").focus();
-    } else if (getQuery("screen") === "place" && ($("#units_form").length > 0 || $("#command-data-form").length > 0)) {
-        /*Rally page.*/
-        if (!localData) {
-            errorBox(_("Are you sure you've imported some reports?"));
-            return;
-        }
-
-        var errorBo = $(".error_box");
-        if (errorBo.length > 0) {
-            if (errorBo.text().trim().indexOf("can only attack each other when the bigger player's") !== -1 || errorBo.text().trim().indexOf("has been banned and cannot be attacked") !== -1) {
-                var vilCoords = $(".village-name");
-                var coordsFound = false;
-                if (vilCoords.length > 0) {
-                    vilCoords = splitOutCoords(vilCoords.text(), true);
-                    if (vilCoords){
-                        var vilIndex;
-                        localData.forEach(function(element, index) {
-                            if (element.coords === vilCoords) vilIndex = index;
-                        });
-                        if (typeof vilIndex !== "undefined") {
-                            coordsFound = true;
-                            localData[vilIndex].disabled = true;
-                            $(".error_box").html("Previous farm disabled. Please <a href='" + window.location.href.replace("&try=confirm", "") .replace(/\&target\=\d*/, "") + "'>reopen the rally point</a>)");
+                            } else {
+                                reportElement.innerHTML += " - " + progressReport;
+                            }
+                            /*Cleanup*/
+                            fakeDOM.html("");
                         }
+                    });
+                }, timeOut);
+            }
+            timeOut += 100;
+
+        });
+    } else if (getQuery("view") !== "") {
+        /*We're on an individual report!*/
+        processReport(document, getQuery("view"));
+    } else if (getQuery("view") === "" && (getQuery("mode") === "all" || getQuery("mode") === "")) {
+        errorBox(_("Please run this from the 'attacks' menu!"));
+    }
+}
+
+function executeRallyConfirmLogic(localData) {
+    /*Rally confirm page.*/
+    if (!localData) {
+        errorBox(_("Are you sure you've imported some reports?"));
+        return;
+    }
+
+    var targetCoords = splitOutCoords($(".village_anchor").text(), true);
+    var vilIndex;
+    localData.forEach(function(element, index) {
+        if (element.coords === targetCoords) vilIndex = index;
+    });
+    if (typeof vilIndex === "undefined") {
+        errorBox(_("Are you sure this village is in the NAFS list?"));
+        $("#troop_confirm_go").focus();
+        return;
+    }
+    var nafsLocalData = localData;
+    var targetVillage = nafsLocalData[vilIndex];
+    var latestReport = targetVillage && targetVillage.reports && targetVillage.reports[0];
+    $("#troop_confirm_go").focus();
+}
+
+function executeRallyLogic(localData, localCoords, nafsData) {
+    /*Rally page.*/
+    if (!localData) {
+        errorBox(_("Are you sure you've imported some reports?"));
+        return;
+    }
+
+    var errorBo = $(".error_box");
+    if (errorBo.length > 0) {
+        if (errorBo.text().trim().indexOf("can only attack each other when the bigger player's") !== -1 || errorBo.text().trim().indexOf("has been banned and cannot be attacked") !== -1) {
+            var vilCoords = $(".village-name");
+            var coordsFound = false;
+            if (vilCoords.length > 0) {
+                vilCoords = splitOutCoords(vilCoords.text(), true);
+                if (vilCoords){
+                    var vilIndex;
+                    localData.forEach(function(element, index) {
+                        if (element.coords === vilCoords) vilIndex = index;
+                    });
+                    if (typeof vilIndex !== "undefined") {
+                        coordsFound = true;
+                        localData[vilIndex].disabled = true;
+                        $(".error_box").html("Previous farm disabled. Please <a href='" + window.location.href.replace("&try=confirm", "") .replace(/\&target\=\d*/, "") + "'>reopen the rally point</a>)");
                     }
                 }
-                if (!coordsFound) {
-                    errorBox("Unable to disable village. Is it in the NAFS list?");
-                }
             }
-        } else {
-            var troopsEntered = false;
-
-            // How far away is each village?
-            // What's the time limit by ram?
-
-            // What's the criteria to cat down a village? HQ > 5?
-            // How many axes to send?
-            // What to do when the list repeats?
-            // What to do with localstorage after a report has been sent?
-
-            if (!nafsData.villaIndex) {
-                nafsData.villaIndex = 0;
+            if (!coordsFound) {
+                errorBox("Unable to disable village. Is it in the NAFS list?");
             }
+        }
+    } else {
+        var troopsEntered = false;
 
-            if (nafsData.villaIndex > localData.length - 1) {
-                console.log("Index too high, clear LocalStorage!");
+        // How far away is each village?
+        // What's the time limit by ram?
+
+        // What's the criteria to cat down a village? HQ > 5?
+        // How many axes to send?
+        // What to do when the list repeats?
+        // What to do with localstorage after a report has been sent?
+
+        if (!nafsData.villaIndex) {
+            nafsData.villaIndex = 0;
+        }
+
+        if (nafsData.villaIndex > localData.length - 1) {
+            console.log("Index too high, clear LocalStorage!");
+            return;
+        }
+
+        for (var i = nafsData.villaIndex; i < localData.length; i++) { 
+            element = localData[i];
+            nafsData.villaIndex++;
+
+            var latestReport = element.reports && element.reports[0];
+            if (!latestReport) { 
+                console.log("Latest report not found.");
                 return;
             }
 
-            for (var i = nafsData.villaIndex; i < localData.length; i++) { 
-                element = localData[i];
-                nafsData.villaIndex++;
+            var targetCoords = element.coords;
+            var troops = {spy: 0};
+            troops.axe = 40;
 
-                var latestReport = element.reports && element.reports[0];
-                if (!latestReport) { 
-                    console.log("Latest report not found.");
-                    return;
-                }
+            var wallLevel = latestReport.buildings.wall;
+            if (wallLevel == 0) {
+                console.log("Wall is level 0.");
+                continue;
+            }
+                            
+            var ramCount = Math.min(ramsMin[wallLevel]);
+            troops.ram = ramCount;
+            console.log("Ram wall shaping! Village " + targetCoords);
 
-                var targetCoords = element.coords;
-                var troops = {spy: 0};
-                troops.axe = 40;
+            var HQLevel = latestReport.buildings.main;
+            var catCount = Math.min(catsMin[HQLevel]);
+            if (getMaxTroop("catapult") > catCount) {
+                troops.catapult = catCount;
+                console.log("Catapult shaping Hq! Village " + targetCoords);
+            }
 
-                var wallLevel = latestReport.buildings.wall;
-                if (wallLevel == 0) {
-                    console.log("Wall is level 0.");
-                    continue;
-                }
-                                
-                var ramCount = Math.min(ramsMin[wallLevel]);
-                troops.ram = ramCount;
-                console.log("Ram wall shaping! Village " + targetCoords);
+            insertTroops(troops);
+            targetVil(targetCoords);
 
-                var HQLevel = latestReport.buildings.main;
-                var catCount = Math.min(catsMin[HQLevel]);
-                if (getMaxTroop("catapult") > catCount) {
-                    troops.catapult = catCount;
-                    console.log("Catapult shaping Hq! Village " + targetCoords);
-                }
-
-                insertTroops(troops);
-                targetVil(targetCoords);
-
-                if (ramCount > 0) {
-                    break;
-                }
+            if (ramCount > 0) {
+                break;
             }
         }
-    } else if (getQuery("screen") === "info_village") {
-        localData.sort(function(a, b) {
-            return a.distance - b.distance;
-        });
-        nafsData.villages[testLocalCoords] = localData;
-        console.log("villages sorted and stored.")
     }
-    setLocalStorage(nafsData);
+}
+
+function executeSortLogic(localData, localCoords, nafsData) {
+    localData.sort(function(a, b) {
+        return a.distance - b.distance;
+    });
+    nafsData.villages[localCoords] = localData;
+    console.log("villages sorted and stored.")
 }
 
 /*Returns either a boolean ("It went well!") or a message of what went wrong.*/
@@ -585,15 +612,14 @@ function processReport(doc, reportID){
     var espionage = $("#attack_spy_resources, #attack_spy_buildings_left", doc);
     if (espionage.length >= 1) {
         console.log("new style");
-        /* NEW REPORT STYUHL */
         var repTable = espionage.closest("tbody");
         var defender = $("#attack_info_def th:not(:contains('" + _("Defender") + "'))", repTable);
 
         var attackerVillage = $("#attack_info_att th:not(:contains('" + _("Attacker") + "'))", repTable).closest("tbody").find("tr:contains('Origin') td:not(:contains('Origin'))");
-        var testLocalCoordsReport = ["574", "510"];
-        var localCoords = testLocalCoordsReport;
+        //var testLocalCoordsReport = ["574", "510"];
+        //var localCoords = testLocalCoordsReport;
 
-        //var localCoords = splitOutCoords(attackerVillage.text(), true).split("|");
+        var localCoords = splitOutCoords(attackerVillage.text(), true).split("|");
 
         var defenderVillage = $("#attack_info_def th:not(:contains('" + _("Defender") + "'))", repTable).closest("tbody").find("tr:contains('Destination') td:not(:contains('Destination'))");
         var vilCoords = splitOutCoords(defenderVillage.text(), true).split("|");
@@ -667,35 +693,35 @@ function processReport(doc, reportID){
             warehouse = 10;
             wall = 0;
         }
-        var buildz = {};
-        buildz.woodcamp = woodCamp;
-        buildz.claycamp = clayCamp;
-        buildz.ironcamp = ironCamp;
-        buildz.warehouse = warehouse;
-        buildz.wall = wall;
+        var build = {};
+        build.woodcamp = woodCamp;
+        build.claycamp = clayCamp;
+        build.ironcamp = ironCamp;
+        build.warehouse = warehouse;
+        build.wall = wall;
 
         if (buildings) {
             buildings.forEach(function(element, index, array){
-                buildz[element.id] = parseInt(element.level);
+                build[element.id] = parseInt(element.level);
             });
         }
 
-        buildz.barracks = buildz.barracks || 0;
-        buildz.place = buildz.place || 0;
-        buildz.stable = buildz.stable || 0;
-        buildz.garage = buildz.garage || 0;
-        buildz.snob = buildz.snob || 0;
-        buildz.smith = buildz.smith || 0;
-        buildz.statue = buildz.statue || 0;
-        buildz.market = buildz.market || 0;
-        buildz.main = buildz.main || 0;
-        buildz.farm = buildz.farm || 0;
+        build.barracks = build.barracks || 0;
+        build.place = build.place || 0;
+        build.stable = build.stable || 0;
+        build.garage = build.garage || 0;
+        build.snob = build.snob || 0;
+        build.smith = build.smith || 0;
+        build.statue = build.statue || 0;
+        build.market = build.market || 0;
+        build.main = build.main || 0;
+        build.farm = build.farm || 0;
 
         var linkd = $("<span>" + _("Saved") + "</span>");
         linkd.css("display", "none");
 
         repTable.parent().before(linkd);
-        var progress = addReport(parseInt(reportID), localCoords, vilCoords, wood, clay, iron, battleTime, buildz);
+        var progress = addReport(parseInt(reportID), localCoords, vilCoords, wood, clay, iron, battleTime, build);
         if (progress === true){
             linkd.text(_("Saved"));
             linkd.css("display", "block").css("color", "");
