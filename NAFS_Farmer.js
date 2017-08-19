@@ -537,7 +537,7 @@ function executeRallyLogic(localData, localCoords, nafsData) {
             return a.distance - b.distance;
         });
 
-        nafsData.villages[localCoords] = localData;
+        nafsData.villages[string_local_coords] = localData;
         console.log("villages sorted and stored.")
     }
 
