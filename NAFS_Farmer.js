@@ -525,6 +525,7 @@ function executeRallyLogic(localData, localCoords, nafsData) {
     var distance_calced_from = getSetting("distance_calced_from", 0);
     var coords_arr = getLocalCoords();
     var string_local_coords = coords_arr[0] + "|" + coords_arr[1];
+    var string_origin = "500|500";
 
     if (distance_calced_from !== string_local_coords) {
         setSetting("distance_calced_from", string_local_coords);
@@ -537,7 +538,7 @@ function executeRallyLogic(localData, localCoords, nafsData) {
             return a.distance - b.distance;
         });
 
-        nafsData.villages[string_local_coords] = localData;
+        nafsData.villages[string_origin] = localData;
         console.log("villages sorted and stored.")
     }
 
