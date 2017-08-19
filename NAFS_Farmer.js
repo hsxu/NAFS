@@ -230,7 +230,7 @@ function addReport(reportID, localCoords, vilCoords, wood, clay, iron, battleTim
 
 
     if (typeof vilIndex === "undefined"){
-        var mainVillTestCoords = "579|504";
+        var mainVillTestCoords = "500|500";
 
         vilIndex = nafsData.villages[localCoords].push({
             coords: vilCoords,
@@ -399,14 +399,15 @@ function def() {
     //Resort when rally point is changed. Will have to be moved into the rally point.
     //Distance recalculated when rally point is changed.
     //Localcoord set to some universal value.
+    //JSON needs to be set to dictionary instead of list..
 
     //Hit walls only - first mode.
     //Hit with catapults - second mode.
-    //Building levels need to be changed after scout report. 
+    //Building levels need to be changed after presumed hit. 
 
     var nafsData = getLocalStorage();
     //var localCoords = getLocalCoords();
-    var testLocalCoords = ["574", "510"];
+    var testLocalCoords = ["500", "500"];
     var localCoords = testLocalCoords;
 
     var localData = nafsData.villages[localCoords] || nafsData.villages[localCoords[0] + "|" + localCoords[1]];
@@ -626,10 +627,10 @@ function processReport(doc, reportID){
         var defender = $("#attack_info_def th:not(:contains('" + _("Defender") + "'))", repTable);
 
         var attackerVillage = $("#attack_info_att th:not(:contains('" + _("Attacker") + "'))", repTable).closest("tbody").find("tr:contains('Origin') td:not(:contains('Origin'))");
-        //var testLocalCoordsReport = ["574", "510"];
-        //var localCoords = testLocalCoordsReport;
+        var testLocalCoordsReport = ["500", "500"];
+        var localCoords = testLocalCoordsReport;
 
-        var localCoords = splitOutCoords(attackerVillage.text(), true).split("|");
+        //var localCoords = splitOutCoords(attackerVillage.text(), true).split("|");
 
         var defenderVillage = $("#attack_info_def th:not(:contains('" + _("Defender") + "'))", repTable).closest("tbody").find("tr:contains('Destination') td:not(:contains('Destination'))");
         var vilCoords = splitOutCoords(defenderVillage.text(), true).split("|");
