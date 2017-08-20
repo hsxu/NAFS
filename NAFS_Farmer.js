@@ -518,6 +518,8 @@ function executeRallyLogic(localData, localCoords, nafsData) {
         return;
     }
 
+    console.log("Version 0.1");
+
     // Change distance_calced_from and recalc all distances and sort, if distance_calced from is not from current village.
     var distance_calced_from = getSetting("distance_calced_from", 0);
     var coords_arr = getLocalCoords();
@@ -604,13 +606,8 @@ function executeRallyLogic(localData, localCoords, nafsData) {
             var troops = {spy: 0};
             troops.axe = 40;
 
-            /*var wallLevel = latestReport.buildings.wall;
-            if (wallLevel == 0) {
-                console.log("Wall is level 0.");
-                continue;
-            }
-                            
-            var ramCount = Math.min(ramsMin[wallLevel]);
+            /*var wallLevel = latestReport.buildings.wall;                           
+            var ramCount = ramsRequired[wallLevel + 1];
             troops.ram = ramCount;
             console.log("Ram wall shaping! Village " + targetCoords);*/
 
@@ -626,7 +623,7 @@ function executeRallyLogic(localData, localCoords, nafsData) {
                 continue;
             }
 
-            var catCount = catsMin[nafsData.currVillaHQ];
+            var catCount = catsMin[nafsData.currVillaHQ + 1];
             if (getMaxTroop("catapult") > catCount) {
                 troops.catapult = catCount;
                 nafsData.currVillaHQ -= 1;
@@ -636,6 +633,7 @@ function executeRallyLogic(localData, localCoords, nafsData) {
             insertTroops(troops);
             targetVil(targetCoords);
 
+            //if (catCount > 0 || ramCount > 0) {
             if (catCount > 0) {
                 break;
             }
