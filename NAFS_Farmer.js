@@ -604,14 +604,14 @@ function executeRallyLogic(localData, localCoords, nafsData) {
 
             var targetCoords = element.coords;
             var troops = {spy: 0};
-            troops.axe = 40;
+            troops.axe = 100;
 
-            /*var wallLevel = latestReport.buildings.wall;                           
+            var wallLevel = latestReport.buildings.wall;                           
             var ramCount = ramsRequired[wallLevel + 1];
             troops.ram = ramCount;
-            console.log("Ram wall shaping! Village " + targetCoords);*/
+            console.log("Ram wall shaping! Village " + targetCoords);
 
-            var HQLevel;
+            /*var HQLevel;
             
             if (nafsData.currVillaHQ == 0) {
                 nafsData.currVillaHQ = latestReport.buildings.main;
@@ -628,7 +628,7 @@ function executeRallyLogic(localData, localCoords, nafsData) {
                 troops.catapult = catCount;
                 nafsData.currVillaHQ -= 1;
                 console.log("Catapult shaping Hq! Village " + targetCoords);
-            }
+            }*/
 
             insertTroops(troops);
             targetVil(targetCoords);
