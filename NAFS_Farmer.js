@@ -635,6 +635,7 @@ function executeRallyLogic(localData, localCoords, nafsData) {
 
             //if (catCount > 0 || ramCount > 0) {
             if (ramCount > 0) {
+                nafsData.villaIndex++;
                 break;
             }
         }
