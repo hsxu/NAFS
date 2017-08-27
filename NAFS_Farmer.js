@@ -607,8 +607,7 @@ function executeRallyLogic(localData, localCoords, nafsData) {
             troops.axe = 100;
 
             var wallLevel = latestReport.buildings.wall;                           
-            var ramCount = ramsRequired[wallLevel + 1];
-            troops.ram = ramCount;
+            troops.ram = ramsRequired[wallLevel + 1];
             console.log("Ram wall shaping! Village " + targetCoords);
 
             /*var HQLevel;
@@ -634,7 +633,7 @@ function executeRallyLogic(localData, localCoords, nafsData) {
             targetVil(targetCoords);
 
             //if (catCount > 0 || ramCount > 0) {
-            if (ramCount > 0) {
+            if (wallLevel > 0) {
                 nafsData.villaIndex++;
                 break;
             }
