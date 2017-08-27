@@ -518,7 +518,7 @@ function executeRallyLogic(localData, localCoords, nafsData) {
         return;
     }
 
-    console.log("Version 0.1");
+    console.log("Version 0.2");
 
     // Change distance_calced_from and recalc all distances and sort, if distance_calced from is not from current village.
     var distance_calced_from = getSetting("distance_calced_from", 0);
