@@ -633,8 +633,8 @@ function executeRallyLogic(localData, localCoords, nafsData) {
             targetVil(targetCoords);
 
             //if (catCount > 0 || ramCount > 0) {
+            nafsData.villaIndex++;
             if (wallLevel > 0) {
-                nafsData.villaIndex++;
                 break;
             }
         }
